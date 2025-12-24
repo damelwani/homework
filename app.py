@@ -89,7 +89,7 @@ def add():
             session["user_id"], name, due_date
         )
 
-        return redirect()
+        return redirect("/")
 
     else:
         return render_template("add.html")
