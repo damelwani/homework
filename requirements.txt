@@ -3,3 +3,4 @@ flask_session
 cs50
 datetime
 requests
+psycopg2-binary
