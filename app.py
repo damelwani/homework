@@ -96,7 +96,7 @@ def index():
         return redirect("/parent")
 
     assignments = db.execute("SELECT * FROM assignments WHERE user_id = ? ORDER BY status DESC, due_date ASC", session["user_id"])
-   rows = db.execute("SELECT * FROM assignments WHERE user_id = ?", session["user_id"])
+    rows = db.execute("SELECT * FROM assignments WHERE user_id = ?", session["user_id"])
     
     # Create a new list to hold processed data
     assignments = []
