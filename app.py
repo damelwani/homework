@@ -189,7 +189,8 @@ def logout():
     session.clear()
 
     return redirect("/")
-#Parent code partially from AI@app.route("/parent")
+#Parent code partially from AI
+@app.route("/parent")
 @login_required
 def parent_view():
     # 1. Use 'links' table and 'student_id' column (matching your Neon setup)
