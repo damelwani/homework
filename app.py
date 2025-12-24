@@ -143,10 +143,15 @@ def login():
             flash("Invalid username and/or password")
             return render_template("login.html")
 
+        # ... after password verification ...
         session["user_id"] = rows[0]["id"]
-        session["role"] = rows[0]["role"]
+        session["role"] = rows[0]["role"] # Make sure 'role' is a column in your users table
 
-        return redirect("/")
+        # Redirect based on role
+        if session["role"] == "parent":
+            return redirect("/parent")
+        else:
+            return redirect("/")
 
     else:
         return render_template("login.html")
