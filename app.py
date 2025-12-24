@@ -201,14 +201,18 @@ def parent_view():
         ORDER BY users.username, due_date ASC
     """, session["user_id"])
     now = datetime.now()
-    today_str = now.strftime('%Y-%m-%d')
-    two_days_out = (now + timedelta(days=2)).strftime('%Y-%m-%d')
+   for task in tasks:
+        if isinstance(task["due_date"], str):
+            task["due_date"] = datetime.strptime(task["due_date"], '%Y-%m-%d').date()
 
-    return render_template("parent.html",
-                           family_work=family_work,
-                           children=children,
-                           today=today_str,
-                           today_plus_2=two_days_out)
+    # Ensure these are defined for the comparison in parent.html
+    today = date.today()
+    today_plus_2 = today + timedelta(days=2)
+
+    return render_template("parent.html", 
+                           tasks=tasks, 
+                           today=today, 
+                           today_plus_2=today_plus_2)
 
 
 #Parent link code partially from AI
