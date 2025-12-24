@@ -80,7 +80,7 @@ def add():
             session["user_id"], name, due_date
         )
 
-        return redirect("/")
+        return redirect()
 
     else:
         return render_template("add.html")
@@ -96,16 +96,21 @@ def index():
         return redirect("/parent")
 
     assignments = db.execute("SELECT * FROM assignments WHERE user_id = ? ORDER BY status DESC, due_date ASC", session["user_id"])
-    user_data = db.execute("SELECT username FROM users WHERE id = ?", session["user_id"])
-    username = user_data[0]["username"]
+   rows = db.execute("SELECT * FROM assignments WHERE user_id = ?", session["user_id"])
+    
+    # Create a new list to hold processed data
+    assignments = []
+    
+    for row in rows:
+        # Convert the string from the database into a real Python date object
+        if isinstance(row["due_date"], str):
+            # Assumes your date is stored as "YYYY-MM-DD"
+            row["due_date"] = datetime.strptime(row["due_date"], '%Y-%m-%d').date()
+        assignments.append(row)
 
-    now = datetime.now()
-    return render_template("index.html",
-                           assignments=assignments,
-                           username=username,
-                           today_plus_2=(now + timedelta(days=2)).strftime('%Y-%m-%d'),
-                           today=now.strftime('%Y-%m-%d'))
-
+    today = date.today()
+    
+    return render_template("index.html", assignments=assignments, today=today)
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """Log user in"""
