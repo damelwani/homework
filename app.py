@@ -98,29 +98,28 @@ def add():
 @app.route("/")
 @login_required
 def index():
-    user_row = db.execute("SELECT role FROM users WHERE id = ?", session["user_id"])
-    role = user_row[0]["role"]
+    # 1. Fetch the username
+    user_row = db.execute("SELECT username FROM users WHERE id = ?", session["user_id"])
+    username = user_row[0]["username"] if user_row else "User"
 
-    if role == "parent":
-        return redirect("/parent")
-
-    assignments = db.execute("SELECT * FROM assignments WHERE user_id = ? ORDER BY status DESC, due_date ASC", session["user_id"])
+    # 2. Fetch the assignments (your existing code)
     rows = db.execute("SELECT * FROM assignments WHERE user_id = ?", session["user_id"])
     
-    # Create a new list to hold processed data
     assignments = []
-    
     for row in rows:
-        # Convert the string from the database into a real Python date object
         if isinstance(row["due_date"], str):
-            # Assumes your date is stored as "YYYY-MM-DD"
             row["due_date"] = datetime.strptime(row["due_date"], '%Y-%m-%d').date()
         assignments.append(row)
 
     today = date.today()
     today_plus_2 = today + timedelta(days=2)
     
-    return render_template("index.html", assignments=assignments, today=today, today_plus_2=today_plus_2)
+    # 3. Pass 'username' into the template
+    return render_template("index.html", 
+                           username=username, 
+                           assignments=assignments, 
+                           today=today, 
+                           today_plus_2=today_plus_2)
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """Log user in"""
