@@ -13,7 +13,8 @@ app.config["SECRET_KEY"] = "longHomeworkSecretKey"
 
 app.config["SESSION_PERMANENT"] = False
 
-db = SQL("sqlite:///homework.db")
+database_url=os.environ.get("psql 'postgresql://neondb_owner:npg_wEKqG5s9jnlY@ep-wandering-tree-adanengq-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'")
+db = SQL("psql 'postgresql://neondb_owner:npg_wEKqG5s9jnlY@ep-wandering-tree-adanengq-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require'")
 
 #From AI
 def format_date(value):
