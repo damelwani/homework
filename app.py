@@ -20,8 +20,17 @@ db = SQL("postgresql://neondb_owner:npg_wEKqG5s9jnlY@ep-wandering-tree-adanengq-
 def format_date(value):
     if not value:
         return ""
-    date_obj = datetime.strptime(value, '%Y-%m-%d')
-    return date_obj.strftime('%B %d, %Y')
+    
+    # If the value is already a date object (not a string)
+    if isinstance(value, (date, datetime)):
+        return value.strftime('%B %d, %Y')
+        
+    # If it's a string, convert it first
+    try:
+        date_obj = datetime.strptime(value, '%Y-%m-%d')
+        return date_obj.strftime('%B %d, %Y')
+    except (ValueError, TypeError):
+        return value
 
 app.jinja_env.filters['pretty_date'] = format_date
 
