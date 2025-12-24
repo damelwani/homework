@@ -110,7 +110,7 @@ def index():
 
     today = date.today()
     
-    return render_template("index.html", assignments=assignments, today=today)
+    return render_template("index.html", assignments=assignments, today=today, today_plus_2=today_plus_2)
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """Log user in"""
