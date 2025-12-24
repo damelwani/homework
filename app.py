@@ -201,7 +201,7 @@ def parent_view():
         ORDER BY users.username, due_date ASC
     """, session["user_id"])
     now = datetime.now()
-   for task in tasks:
+    for task in tasks:
         if isinstance(task["due_date"], str):
             task["due_date"] = datetime.strptime(task["due_date"], '%Y-%m-%d').date()
 
