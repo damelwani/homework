@@ -193,13 +193,15 @@ def logout():
 @app.route("/parent")
 @login_required
 def parent_view():
-    # 1. Use 'links' table and 'student_id' column (matching your Neon setup)
+    # 1. Get the list of children (names/IDs)
+    # Ensure 'student_id' matches your Neon column name exactly!
     children = db.execute("""
         SELECT id, username FROM users
         WHERE id IN (SELECT student_id FROM relationships WHERE parent_id = ?)
     """, session["user_id"])
 
-    family_work = db.execute("""
+    # 2. Fetch the assignments
+    raw_tasks = db.execute("""
         SELECT assignments.*, users.username
         FROM assignments
         JOIN users ON assignments.user_id = users.id
@@ -207,12 +209,15 @@ def parent_view():
         ORDER BY users.username, due_date ASC
     """, session["user_id"])
 
-    # 2. Convert database strings to Python date objects for the template comparison
-    for task in family_work:
+    # 3. Convert to mutable list of dicts to fix the 500 error
+    family_work = []
+    for row in raw_tasks:
+        task = dict(row)
         if isinstance(task["due_date"], str):
             task["due_date"] = datetime.strptime(task["due_date"], '%Y-%m-%d').date()
+        family_work.append(task)
 
-    # 3. Use date objects (not strftime strings)
+    # 4. Prepare dates for the template
     today = date.today()
     two_days_out = today + timedelta(days=2)
 
