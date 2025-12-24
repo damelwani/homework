@@ -2,3 +2,4 @@ Flask
 flask_session
 cs50
 datetime
+requests
