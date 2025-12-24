@@ -1,1 +1,4 @@
-
+Flask
+cs50
+functools
+datetime
