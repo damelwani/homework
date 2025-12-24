@@ -1,0 +1,16 @@
+{% extends "layout.html" %}
+
+{% block main %}
+    <h3>Link to a Student</h3>
+    <p class="text-muted">Enter your child's username to see their assignment progress.</p>
+
+    <form action="/link" method="post" class="col-md-4">
+        <div class="mb-3">
+            <input name="child_username" class="form-control" placeholder="Student Username" type="text" autocomplete="off" required>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-primary" type="submit">Add Student</button>
+            <a href="/parent" class="btn btn-secondary">Back to Dashboard</a>
+        </div>
+    </form>
+{% endblock %}

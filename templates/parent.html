@@ -1,0 +1,41 @@
+{% extends "layout.html" %}
+
+{% block main %}
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1>Family Dashboard</h1>
+        <a href="/link" class="btn btn-outline-primary">Link New Student</a>
+    </div>
+
+    {% if family_work %}
+        <table class="table table-hover border">
+            <thead class="table-light">
+                <tr>
+                    <th>Student</th>
+                    <th>Assignment</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in family_work %}
+                <tr class="{% if task.status == 'Pending' and task.due_date <= today %}table-danger{% elif task.status == 'Pending' and task.due_date <= today_plus_2 %}table-warning{% endif %}">
+                    <td><strong>{{ task.username }}</strong></td>
+                    <td>{{ task.title }}</td>
+                    <td>{{ task.due_date | pretty_date }}</td>
+                    <td>
+                        <span class="badge {{ 'bg-success' if task.status == 'Completed' else 'bg-secondary' }}">
+                            {{ task.status }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="text-center py-5 border rounded bg-light">
+            <h3 class="text-secondary">No student data available</h3>
+            <p>You haven't linked any students yet, or your linked students have no assignments.</p>
+            <a href="/link" class="btn btn-primary mt-2">Link a Student</a>
+        </div>
+    {% endif %}
+{% endblock %}

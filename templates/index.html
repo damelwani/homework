@@ -1,0 +1,53 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    Home
+{% endblock %}
+
+{% block main %}
+    <div class="mb-4">
+        <h2>Welcome, {{ username }}!</h2>
+    </div>
+
+    {% if assignments %}
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th>Task</th>
+                    <th>Due Date</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for assignment in assignments %}
+                    <tr class="{% if assignment.status == 'Pending' %}{% if assignment.due_date < today %}table-danger{% elif assignment.due_date <= today_plus_2 %}table-warning{% endif %}{% endif %}">
+                        <td>{{ assignment.title }}</td>
+                        <td>{{ assignment.due_date | pretty_date }}</td>
+                        <td>
+                            <form action="/update" method="post">
+                                <input type="hidden" name="id" value="{{ assignment.id }}">
+                                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
+                                    <option value="Pending" {% if assignment.status == 'Pending' %}selected{% endif %}>Pending</option>
+                                    <option value="Completed" {% if assignment.status == 'Completed' %}selected{% endif %}>Completed</option>
+                                </select>
+                            </form>
+                        </td>
+                        <td>
+                            <form action="/delete" method="post" style="display:inline;">
+                                <input type="hidden" name="id" value="{{ assignment.id }}">
+                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <div class="text-center py-5 border rounded bg-light">
+            <h3 class="text-secondary"> No assignments due!</h3>
+            <p>You're all caught up. Enjoy your free day!</p>
+            <a href="/add" class="btn btn-primary mt-2">Add an Assignment</a>
+        </div>
+    {% endif %}
+{% endblock %}
