@@ -193,23 +193,22 @@ def logout():
 @app.route("/parent")
 @login_required
 def parent_view():
-    # 1. Get the list of children (names/IDs)
-    # Ensure 'student_id' matches your Neon column name exactly!
+    # 1. Get the list of children (Changed student_id to child_id)
     children = db.execute("""
         SELECT id, username FROM users
-        WHERE id IN (SELECT student_id FROM relationships WHERE parent_id = ?)
+        WHERE id IN (SELECT child_id FROM relationships WHERE parent_id = ?)
     """, session["user_id"])
 
-    # 2. Fetch the assignments
+    # 2. Fetch the assignments (Changed student_id to child_id)
     raw_tasks = db.execute("""
         SELECT assignments.*, users.username
         FROM assignments
         JOIN users ON assignments.user_id = users.id
-        WHERE user_id IN (SELECT student_id FROM relationships WHERE parent_id = ?)
+        WHERE user_id IN (SELECT child_id FROM relationships WHERE parent_id = ?)
         ORDER BY users.username, due_date ASC
     """, session["user_id"])
 
-    # 3. Convert to mutable list of dicts to fix the 500 error
+    # 3. Convert to mutable list of dicts to fix the read-only row error
     family_work = []
     for row in raw_tasks:
         task = dict(row)
