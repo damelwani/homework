@@ -196,14 +196,14 @@ def parent_view():
     # 1. Use 'links' table and 'student_id' column (matching your Neon setup)
     children = db.execute("""
         SELECT id, username FROM users
-        WHERE id IN (SELECT student_id FROM links WHERE parent_id = ?)
+        WHERE id IN (SELECT student_id FROM relationships WHERE parent_id = ?)
     """, session["user_id"])
 
     family_work = db.execute("""
         SELECT assignments.*, users.username
         FROM assignments
         JOIN users ON assignments.user_id = users.id
-        WHERE user_id IN (SELECT student_id FROM links WHERE parent_id = ?)
+        WHERE user_id IN (SELECT student_id FROM relationships WHERE parent_id = ?)
         ORDER BY users.username, due_date ASC
     """, session["user_id"])
 
