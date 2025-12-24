@@ -184,35 +184,37 @@ def logout():
     session.clear()
 
     return redirect("/")
-#Parent code partially from AI
-@app.route("/parent")
+#Parent code partially from AI@app.route("/parent")
 @login_required
 def parent_view():
-    # 1. Initialize 'tasks' so it exists even if the logic below fails
-    tasks = [] 
-    
-    # 2. Get the linked student (Make sure this variable name matches below)
-    student_link = db.execute("SELECT student_id FROM links WHERE parent_id = ?", session["user_id"])
-    
-    if student_link:
-        student_id = student_link[0]["student_id"]
-        # 3. Assign the results to 'tasks'
-        tasks = db.execute("SELECT * FROM assignments WHERE user_id = ?", student_id)
-        
-        # 4. Loop through 'tasks' (plural) to convert dates
-        for task in tasks:
-            if isinstance(task["due_date"], str):
-                task["due_date"] = datetime.strptime(task["due_date"], '%Y-%m-%d').date()
+    # 1. Use 'links' table and 'student_id' column (matching your Neon setup)
+    children = db.execute("""
+        SELECT id, username FROM users
+        WHERE id IN (SELECT student_id FROM links WHERE parent_id = ?)
+    """, session["user_id"])
 
-    # 5. Define helper variables
+    family_work = db.execute("""
+        SELECT assignments.*, users.username
+        FROM assignments
+        JOIN users ON assignments.user_id = users.id
+        WHERE user_id IN (SELECT student_id FROM links WHERE parent_id = ?)
+        ORDER BY users.username, due_date ASC
+    """, session["user_id"])
+
+    # 2. Convert database strings to Python date objects for the template comparison
+    for task in family_work:
+        if isinstance(task["due_date"], str):
+            task["due_date"] = datetime.strptime(task["due_date"], '%Y-%m-%d').date()
+
+    # 3. Use date objects (not strftime strings)
     today = date.today()
-    today_plus_2 = today + timedelta(days=2)
+    two_days_out = today + timedelta(days=2)
 
-    # 6. Pass 'tasks' to the template
-    return render_template("parent.html", 
-                           tasks=tasks, 
-                           today=today, 
-                           today_plus_2=today_plus_2)
+    return render_template("parent.html",
+                           family_work=family_work,
+                           children=children,
+                           today=today,
+                           today_plus_2=two_days_out)
 #Parent link code partially from AI
 @app.route("/link", methods=["GET", "POST"])
 @login_required
