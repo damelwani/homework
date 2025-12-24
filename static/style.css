@@ -22,3 +22,36 @@ main {
 .blue {
     color: #0066ff;
 }
+
+/* 1. Make the entire page a flex container */
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+}
+
+/* 2. Tell the main content area to take up all available space, 
+      pushing the footer to the very bottom */
+main {
+    flex: 1 0 auto;
+}
+
+/* 3. Footer styling for spacing and appearance */
+footer {
+    flex-shrink: 0;
+    padding: 20px 0;
+    background-color: #f8f9fa; /* Light gray background */
+    border-top: 1px solid #dee2e6;
+    color: #6c757d; /* Muted text color */
+}
+
+/* Optional: Center the disclaimer text on mobile */
+@media (max-width: 576px) {
+    footer .container {
+        padding: 0 15px;
+    }
+}
