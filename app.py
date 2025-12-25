@@ -101,19 +101,21 @@ def add():
 @app.route("/")
 @login_required
 def index():
-    # Get the user's preferred sort from the URL, default to 'due_date'
-    sort_by = request.args.get("sort", "due_date")
+    # 1. Fetch the username from the database
+    user_row = db.execute("SELECT username FROM users WHERE id = ?", session["user_id"])
     
-    # Map friendly names to actual database columns
-    valid_sorts = {
-        "date": "due_date",
-        "subject": "subject",
-        "title": "title"
-    }
+    # Check if the user exists, otherwise default to "User"
+    if not user_row:
+        username = "User"
+    else:
+        username = user_row[0]["username"]
+
+    # 2. Get the sorting preference from the URL (?sort=...)
+    sort_by = request.args.get("sort", "date")
+    valid_sorts = {"date": "due_date", "subject": "subject", "title": "title"}
     secondary_sort = valid_sorts.get(sort_by, "due_date")
 
-    # SQL Magic: Sort by status DESC (Pending before Completed) 
-    # then by the chosen secondary category
+    # 3. Fetch assignments (Filtering out completed ones older than 5 days)
     rows = db.execute(f"""
         SELECT * FROM assignments 
         WHERE user_id = ? 
@@ -121,22 +123,28 @@ def index():
         ORDER BY status DESC, {secondary_sort} ASC
     """, session["user_id"])
     
+    # 4. Process dates so they don't crash the template
     assignments = []
     for row in rows:
-        if isinstance(row["due_date"], str):
-            row["due_date"] = datetime.strptime(row["due_date"], '%Y-%m-%d').date()
-        assignments.append(row)
+        task = dict(row)
+        if isinstance(task["due_date"], str):
+            task["due_date"] = datetime.strptime(task["due_date"], '%Y-%m-%d').date()
+        assignments.append(task)
 
+    # 5. Define timing variables for color-coding
     today = date.today()
     today_plus_2 = today + timedelta(days=2)
     
-    # 3. Pass 'username' into the template
-    return render_template("index.html", 
-                           username=username, 
-                           assignments=assignments, 
-                           today=today, 
-                           today_plus_2=today_plus_2,
-                            current_sort=sort_by)
+    # 6. Return the template with ALL required variables
+    return render_template(
+        "index.html", 
+        username=username, 
+        assignments=assignments, 
+        today=today, 
+        today_plus_2=today_plus_2,
+        current_sort=sort_by
+    )
+
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """Log user in"""
