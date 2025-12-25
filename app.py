@@ -135,7 +135,7 @@ def index():
                            username=username, 
                            assignments=assignments, 
                            today=today, 
-                           today_plus_2=today_plus_2
+                           today_plus_2=today_plus_2,
                             current_sort=sort_by)
 @app.route("/login", methods=["GET", "POST"])
 def login():
