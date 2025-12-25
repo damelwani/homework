@@ -21,6 +21,14 @@
     </thead>
     <tbody>
         {% for task in assignments %}
+        <form action="/" method="get" class="d-flex align-items-center">
+        <label for="sort" class="me-2 text-muted">Sort by:</label>
+        <select name="sort" id="sort" onchange="this.form.submit()" class="form-select form-select-sm w-auto">
+            <option value="date" {% if current_sort == 'date' %}selected{% endif %}>Due Date</option>
+            <option value="subject" {% if current_sort == 'subject' %}selected{% endif %}>Subject</option>
+            <option value="title" {% if current_sort == 'title' %}selected{% endif %}>Assignment Name</option>
+        </select>
+    </form>
 <tr class="{% if task.status == 'Completed' %}table-success{% elif task.due_date < today %}table-danger{% elif task.due_date <= today_plus_2 %}table-warning{% endif %}">
     
     <td><span class="badge bg-secondary">{{ task.subject or "General" }}</span></td>
