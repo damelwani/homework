@@ -54,38 +54,7 @@
             {% endfor %}
         </tbody>
     </table>
-</div>
-    
-        {% for task in assignments %}
-        
-<tr class="{% if task.status == 'Completed' %}table-success{% elif task.due_date < today %}table-danger{% elif task.due_date <= today_plus_2 %}table-warning{% endif %}">
-    
-    <td><span class="badge bg-secondary">{{ task.subject or "General" }}</span></td>
-    
-    <td>{{ task.title }}</td>
-    <td>{{ task.due_date | pretty_date }}</td>
-    <td>{{ task.status }}</td>
-    <td class="text-nowrap"> <div class="d-flex gap-1">
-        <form action="/update" method="post" class="d-inline">
-            <input type="hidden" name="id" value="{{ task.id }}">
-            {% if task.status == 'Pending' %}
-                <button type="submit" name="status" value="Completed" class="btn btn-sm btn-success">Done</button>
-            {% else %}
-                <button type="submit" name="status" value="Pending" class="btn btn-sm btn-outline-secondary">Undo</button>
-            {% endif %}
-        </form>
 
-        <a href="/edit/{{ task.id }}" class="btn btn-sm btn-outline-primary">Edit</a>
-
-        <form action="/delete" method="post" class="d-inline" onsubmit="return confirm('Are you sure?');">
-            <input type="hidden" name="id" value="{{ task.id }}">
-            <button type="submit" class="btn btn-sm btn-danger">×</button> </form>
-    </div>
-</td>
-</tr>
-{% endfor %}
-    </tbody>
-</table>
     </div>
     {% else %}
         <div class="text-center py-5 border rounded bg-light">
