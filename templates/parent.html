@@ -7,30 +7,49 @@
     </div>
 
     {% if family_work %}
-        <table class="table table-hover border">
-            <thead class="table-light">
-                <tr>
-                    <th>Student</th>
-                    <th>Assignment</th>
-                    <th>Due Date</th>
-                    <th>Status</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for task in family_work %}
-                <tr class="{% if task.status == 'Pending' and task.due_date <= today %}table-danger{% elif task.status == 'Pending' and task.due_date <= today_plus_2 %}table-warning{% endif %}">
-                    <td><strong>{{ task.username }}</strong></td>
-                    <td>{{ task.title }}</td>
-                    <td>{{ task.due_date | pretty_date }}</td>
-                    <td>
-                        <span class="badge {{ 'bg-success' if task.status == 'Completed' else 'bg-secondary' }}">
-                            {{ task.status }}
-                        </span>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+<div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th>Student</th>
+                <th>Subject</th>
+                <th>Assignment</th>
+                <th>Due Date</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in family_work %}
+            <tr class="{% if task.status == 'Completed' %}table-success text-muted{% elif task.due_date < today %}table-danger{% elif task.due_date <= today_plus_2 %}table-warning{% endif %}">
+                
+                <td><strong>{{ task.username }}</strong></td>
+                
+                <td>
+                    <span class="badge bg-secondary">{{ task.subject or "General" }}</span>
+                </td>
+                
+                <td>{{ task.title }}</td>
+                
+                <td>{{ task.due_date | pretty_date }}</td>
+                
+                <td>
+                    {% if task.status == 'Completed' %}
+                        <span class="text-success"><i class="bi bi-check-circle-fill"></i> Completed</span>
+                    {% else %}
+                        <span class="text-dark">Pending</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="text-center text-muted py-4">
+                    No active assignments found for your linked students.
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
     {% else %}
         <div class="text-center py-5 border rounded bg-light">
             <h3 class="text-secondary">No student data available</h3>
