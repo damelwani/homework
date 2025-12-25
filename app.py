@@ -102,12 +102,28 @@ def add():
 @app.route("/")
 @login_required
 def index():
-    # 1. Fetch the username
-    user_row = db.execute("SELECT username FROM users WHERE id = ?", session["user_id"])
-    username = user_row[0]["username"] if user_row else "User"
+    @app.route("/")
+@login_required
+def index():
+    # Get the user's preferred sort from the URL, default to 'due_date'
+    sort_by = request.args.get("sort", "due_date")
+    
+    # Map friendly names to actual database columns
+    valid_sorts = {
+        "date": "due_date",
+        "subject": "subject",
+        "title": "title"
+    }
+    secondary_sort = valid_sorts.get(sort_by, "due_date")
 
-    # 2. Fetch the assignments (your existing code)
-    rows = db.execute("SELECT * FROM assignments WHERE user_id = ?", session["user_id"])
+    # SQL Magic: Sort by status DESC (Pending before Completed) 
+    # then by the chosen secondary category
+    rows = db.execute(f"""
+        SELECT * FROM assignments 
+        WHERE user_id = ? 
+        AND (status != 'Completed' OR completed_at >= CURRENT_DATE - INTERVAL '5 days')
+        ORDER BY status DESC, {secondary_sort} ASC
+    """, session["user_id"])
     
     assignments = []
     for row in rows:
@@ -123,7 +139,8 @@ def index():
                            username=username, 
                            assignments=assignments, 
                            today=today, 
-                           today_plus_2=today_plus_2)
+                           today_plus_2=today_plus_2
+                            current_sort=sort_by)
 @app.route("/login", methods=["GET", "POST"])
 def login():
     """Log user in"""
