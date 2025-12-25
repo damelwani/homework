@@ -239,7 +239,7 @@ def parent_view():
     raw_tasks = db.execute("""
         SELECT assignments.*, users.username 
         FROM assignments 
-        JOIN relationships ON assignments.user_id = relationships.student_id 
+        JOIN relationships ON assignments.user_id = relationships.child_id 
         JOIN users ON assignments.user_id = users.id
         WHERE relationships.parent_id = ?
         AND (status != 'Completed' OR completed_at >= CURRENT_DATE - INTERVAL '5 days')
