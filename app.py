@@ -235,14 +235,15 @@ def parent_view():
     sql_order = valid_sorts.get(sort_by, "users.username ASC, status DESC")
 
     # Fetch linked students' assignments with the 5-day rule
-    raw_tasks = db.execute(f"""
+    # This query says: "Find assignments for students who are LINKED to this parent"
+    raw_tasks = db.execute("""
         SELECT assignments.*, users.username 
         FROM assignments 
         JOIN links ON assignments.user_id = links.student_id 
         JOIN users ON assignments.user_id = users.id
         WHERE links.parent_id = ?
         AND (status != 'Completed' OR completed_at >= CURRENT_DATE - INTERVAL '5 days')
-        ORDER BY {sql_order}
+        ORDER BY status DESC, users.username ASC
     """, session["user_id"])
 
     # Process dates for display
