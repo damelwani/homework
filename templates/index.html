@@ -21,16 +21,16 @@
     </thead>
     <tbody>
         {% for task in assignments %}
-        <tr>
-            <td><span class="badge bg-secondary">{{ task.subject }}</span></td>
-            
-            <td>{{ task.title }}</td>
-            <td>{{ task.due_date | pretty_date }}</td>
-            <td>{{ task.status }}</td>
-            <td>
-                </td>
-        </tr>
-        {% endfor %}
+<tr class="{% if task.status == 'Completed' %}table-success{% elif task.due_date < today %}table-danger{% elif task.due_date <= today_plus_2 %}table-warning{% endif %}">
+    
+    <td><span class="badge bg-secondary">{{ task.subject or "General" }}</span></td>
+    
+    <td>{{ task.title }}</td>
+    <td>{{ task.due_date | pretty_date }}</td>
+    <td>{{ task.status }}</td>
+    <td>...</td>
+</tr>
+{% endfor %}
     </tbody>
 </table>
     {% else %}
