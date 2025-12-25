@@ -85,6 +85,9 @@ def add():
             return render_template("add.html")
 
         subject = request.form.get("subject")
+        if not subject:
+            flash("Subject is required")
+            return render_template("add.html")
         db.execute(
             "INSERT INTO assignments (user_id, title, due_date, subject) VALUES (?, ?, ?, ?)",
         session["user_id"], name, due_date, subject
