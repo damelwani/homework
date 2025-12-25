@@ -190,13 +190,13 @@ def delete():
 def update():
     target_id = request.form.get("id")
     new_status = request.form.get("status")
-
-    db.execute(
-        "UPDATE assignments SET status = ? WHERE id = ? AND user_id = ?",
-        new_status, target_id, session["user_id"]
-    )
-
-    flash("Status updated!")
+    
+    if new_status == "Completed":
+        db.execute("UPDATE assignments SET status = ?, completed_at = CURRENT_DATE, updated_at = CURRENT_TIMESTAMP WHERE id = ?", 
+                   new_status, target_id)
+    else:
+        db.execute("UPDATE assignments SET status = ?, completed_at = NULL, updated_at = CURRENT_TIMESTAMP WHERE id = ?", 
+                   new_status, target_id)
     return redirect("/")
 
 @app.route("/logout")
