@@ -84,9 +84,10 @@ def add():
             flash("Due date is required")
             return render_template("add.html")
 
+        subject = request.form.get("subject")
         db.execute(
-            "INSERT INTO assignments (user_id, title, due_date) VALUES (?, ?, ?)",
-            session["user_id"], name, due_date
+            "INSERT INTO assignments (user_id, title, due_date, subject) VALUES (?, ?, ?, ?)",
+        session["user_id"], name, due_date, subject
         )
 
         return redirect("/")
