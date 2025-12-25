@@ -188,6 +188,9 @@ def delete():
 @app.route("/update", methods=["POST"])
 @login_required
 def update():
+    user_row = db.execute("SELECT username FROM users WHERE id = ?", session["user_id"])
+    username = user_row[0]["username"] if user_row else "User"
+    
     target_id = request.form.get("id")
     new_status = request.form.get("status")
     
