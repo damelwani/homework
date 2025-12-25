@@ -290,3 +290,31 @@ def link_child():
         return redirect("/parent")
 
     return render_template("link.html")
+
+@app.route("/edit/<int:task_id>", methods=["GET", "POST"])
+@login_required
+def edit(task_id):
+    if request.method == "POST":
+        # Get data from the form
+        title = request.form.get("title")
+        subject = request.form.get("subject")
+        due_date = request.form.get("due_date")
+
+        # Update the database
+        db.execute("""
+            UPDATE assignments 
+            SET title = ?, subject = ?, due_date = ?, updated_at = CURRENT_TIMESTAMP 
+            WHERE id = ? AND user_id = ?
+        """, title, subject, due_date, task_id, session["user_id"])
+
+        flash("Assignment updated!")
+        return redirect("/")
+
+    # GET request: Fetch the existing data to pre-fill the form
+    task = db.execute("SELECT * FROM assignments WHERE id = ? AND user_id = ?", 
+                      task_id, session["user_id"])
+    
+    if not task:
+        return "Assignment not found", 404
+        
+    return render_template("edit.html", task=task[0])
