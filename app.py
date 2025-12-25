@@ -98,7 +98,7 @@ def add():
     else:
         return render_template("add.html")
 
-@app.route=("/")
+@app.route("/")
 @login_required
 def index():
     # Get the user's preferred sort from the URL, default to 'due_date'
