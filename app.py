@@ -221,22 +221,31 @@ def logout():
 @app.route("/parent")
 @login_required
 def parent_view():
-    # 1. Get the list of children (Changed student_id to child_id)
-    children = db.execute("""
-        SELECT id, username FROM users
-        WHERE id IN (SELECT child_id FROM relationships WHERE parent_id = ?)
-    """, session["user_id"])
+    # Get the sorting preference (default to 'child')
+    sort_by = request.args.get("sort", "child")
+    
+    # Map choices to SQL columns
+    # We include 'username' in most so work stays grouped by child
+    valid_sorts = {
+        "child": "users.username ASC, status DESC",
+        "date": "due_date ASC, users.username ASC",
+        "subject": "subject ASC, users.username ASC",
+        "name": "title ASC, users.username ASC"
+    }
+    sql_order = valid_sorts.get(sort_by, "users.username ASC, status DESC")
 
-    # 2. Fetch the assignments (Changed student_id to child_id)
-    raw_tasks = db.execute("""
-        SELECT assignments.*, users.username
-        FROM assignments
+    # Fetch linked students' assignments with the 5-day rule
+    raw_tasks = db.execute(f"""
+        SELECT assignments.*, users.username 
+        FROM assignments 
+        JOIN links ON assignments.user_id = links.student_id 
         JOIN users ON assignments.user_id = users.id
-        WHERE user_id IN (SELECT child_id FROM relationships WHERE parent_id = ?)
-        ORDER BY users.username, due_date ASC
+        WHERE links.parent_id = ?
+        AND (status != 'Completed' OR completed_at >= CURRENT_DATE - INTERVAL '5 days')
+        ORDER BY {sql_order}
     """, session["user_id"])
 
-    # 3. Convert to mutable list of dicts to fix the read-only row error
+    # Process dates for display
     family_work = []
     for row in raw_tasks:
         task = dict(row)
@@ -244,15 +253,12 @@ def parent_view():
             task["due_date"] = datetime.strptime(task["due_date"], '%Y-%m-%d').date()
         family_work.append(task)
 
-    # 4. Prepare dates for the template
-    today = date.today()
-    two_days_out = today + timedelta(days=2)
-
-    return render_template("parent.html",
-                           family_work=family_work,
-                           children=children,
-                           today=today,
-                           today_plus_2=two_days_out)
+    return render_template("parent.html", 
+                           family_work=family_work, 
+                           today=date.today(), 
+                           today_plus_2=date.today() + timedelta(days=2),
+                           current_sort=sort_by)
+    
 #Parent link code partially from AI
 @app.route("/link", methods=["GET", "POST"])
 @login_required
