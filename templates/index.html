@@ -10,28 +10,44 @@
     </div>
 
     {% if assignments %}
-    <thead>
-    <tr>
-        <th class="d-none d-md-table-cell">Subject</th> <th>Assignment</th>
-        <th>Due Date</th>
-        <th class="d-none d-sm-table-cell">Status</th> <th class="text-end">Actions</th>
-    </tr>
-</thead>
-<tbody>
-    {% for task in assignments %}
-    <tr>
-        <td class="d-none d-md-table-cell"><span class="badge bg-secondary">{{ task.subject }}</span></td>
-        <td class="fw-bold">{{ task.title }}</td>
-        <td class="text-nowrap">{{ task.due_date | pretty_date }}</td>
-        <td class="d-none d-sm-table-cell">{{ task.status }}</td>
-        <td class="text-end">
-            <div class="btn-group" role="group">
-                <a href="/edit/{{ task.id }}" class="btn btn-sm btn-outline-primary">Edit</a>
-                </div>
-        </td>
-    </tr>
-    {% endfor %}
-</tbody>
+    <div class="table-responsive">
+    <table class="table table-hover align-middle">
+        <thead class="table-light">
+            <tr>
+                <th class="d-none d-sm-table-cell">Subject</th> 
+                <th>Assignment</th>
+                <th>Due Date</th>
+                <th class="text-end">Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for task in assignments %}
+            <tr class="{% if task.status == 'Completed' %}table-success{% elif task.due_date < today %}table-danger{% endif %}">
+                
+                <td class="d-none d-sm-table-cell">
+                    <span class="badge bg-secondary">{{ task.subject or "General" }}</span>
+                </td>
+                
+                <td class="fw-bold">{{ task.title }}</td>
+                
+                <td class="text-nowrap">{{ task.due_date | pretty_date }}</td>
+                
+                <td class="text-end">
+                    <div class="d-flex justify-content-end gap-1">
+                        <form action="/update" method="post" class="d-inline">
+                            <input type="hidden" name="id" value="{{ task.id }}">
+                            <button type="submit" name="status" value="{{ 'Completed' if task.status == 'Pending' else 'Pending' }}" class="btn btn-sm btn-success">
+                                {{ "Done" if task.status == 'Pending' else "Undo" }}
+                            </button>
+                        </form>
+                        <a href="/edit/{{ task.id }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                    </div>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
     
         {% for task in assignments %}
         
