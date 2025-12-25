@@ -10,39 +10,29 @@
     </div>
 
     {% if assignments %}
-        <table class="table table-hover">
-            <thead>
-                <tr>
-                    <th>Task</th>
-                    <th>Due Date</th>
-                    <th>Status</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for assignment in assignments %}
-                    <tr class="{% if assignment.status == 'Pending' %}{% if assignment.due_date < today %}table-danger{% elif assignment.due_date <= today_plus_2 %}table-warning{% endif %}{% endif %}">
-                        <td>{{ assignment.title }}</td>
-                        <td>{{ assignment.due_date | pretty_date }}</td>
-                        <td>
-                            <form action="/update" method="post">
-                                <input type="hidden" name="id" value="{{ assignment.id }}">
-                                <select name="status" class="form-select form-select-sm" onchange="this.form.submit()">
-                                    <option value="Pending" {% if assignment.status == 'Pending' %}selected{% endif %}>Pending</option>
-                                    <option value="Completed" {% if assignment.status == 'Completed' %}selected{% endif %}>Completed</option>
-                                </select>
-                            </form>
-                        </td>
-                        <td>
-                            <form action="/delete" method="post" style="display:inline;">
-                                <input type="hidden" name="id" value="{{ assignment.id }}">
-                                <button type="submit" class="btn btn-sm btn-outline-danger">Delete</button>
-                            </form>
-                        </td>
-                    </tr>
-                {% endfor %}
-            </tbody>
-        </table>
+        <table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Subject</th> <th>Assignment</th>
+            <th>Due Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for task in assignments %}
+        <tr>
+            <td><span class="badge bg-secondary">{{ task.subject }}</span></td>
+            
+            <td>{{ task.title }}</td>
+            <td>{{ task.due_date | pretty_date }}</td>
+            <td>{{ task.status }}</td>
+            <td>
+                </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
     {% else %}
         <div class="text-center py-5 border rounded bg-light">
             <h3 class="text-secondary"> No assignments due!</h3>
