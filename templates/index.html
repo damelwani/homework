@@ -14,9 +14,10 @@
     <table class="table table-hover align-middle">
         <thead class="table-light">
             <tr>
-                <th class="d-none d-sm-table-cell">Subject</th> 
+                <th class="d-none d-md-table-cell">Subject</th> 
                 <th>Assignment</th>
                 <th>Due Date</th>
+                <th class="d-none d-sm-table-cell">Status</th>
                 <th class="text-end">Actions</th>
             </tr>
         </thead>
@@ -24,13 +25,15 @@
             {% for task in assignments %}
             <tr class="{% if task.status == 'Completed' %}table-success{% elif task.due_date < today %}table-danger{% endif %}">
                 
-                <td class="d-none d-sm-table-cell">
+                <td class="d-none d-md-table-cell">
                     <span class="badge bg-secondary">{{ task.subject or "General" }}</span>
                 </td>
                 
                 <td class="fw-bold">{{ task.title }}</td>
                 
                 <td class="text-nowrap">{{ task.due_date | pretty_date }}</td>
+                
+                <td class="d-none d-sm-table-cell">{{ task.status }}</td>
                 
                 <td class="text-end">
                     <div class="d-flex justify-content-end gap-1">
@@ -41,6 +44,10 @@
                             </button>
                         </form>
                         <a href="/edit/{{ task.id }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                        <form action="/delete" method="post" class="d-inline" onsubmit="return confirm('Delete?');">
+                            <input type="hidden" name="id" value="{{ task.id }}">
+                            <button type="submit" class="btn btn-sm btn-danger">×</button>
+                        </form>
                     </div>
                 </td>
             </tr>
