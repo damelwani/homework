@@ -55,3 +55,8 @@ footer {
         padding: 0 15px;
     }
 }
+
+.navbar-brand small {
+    text-transform: uppercase;
+    opacity: 0.8;
+}
