@@ -10,7 +10,6 @@ import json
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
-from email.message import EmailMessage
 import smtplib
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
@@ -442,38 +441,3 @@ def sync_classroom():
         return redirect("/")
 
     return redirect("/")
-
-def send_email(to_email, subject, body):
-    msg = EmailMessage()
-    msg.set_content(body)
-    msg['Subject'] = subject
-    msg['From'] = EMAIL_ADDRESS
-    msg['To'] = to_email
-
-    with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
-        smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
-        smtp.send_message(msg)
-
-def check_and_send():
-    # Calculate tomorrow's date
-    tomorrow = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
-    
-    # Find assignments due tomorrow that aren't completed
-    # This also joins with the users table to get the student's email/username
-    reminders = db.execute("""
-        SELECT a.title, a.subject, u.username 
-        FROM assignments a
-        JOIN users u ON a.user_id = u.id
-        WHERE a.due_date = ? AND a.status != 'Completed'
-    """, tomorrow)
-
-    for r in reminders:
-        subject = f"🔔 Reminder: {r['title']} is due tomorrow!"
-        body = f"Hi {r['username']},\n\nJust a heads up that your {r['subject']} assignment '{r['title']}' is due tomorrow ({tomorrow}).\n\nDon't forget to finish it up!\n\n- Your Homework Tracker"
-        
-        # For now, we'll send it to your email to test
-        send_email(EMAIL_ADDRESS, subject, body)
-        print(f"Sent reminder for {r['title']} to {EMAIL_ADDRESS}")
-
-if __name__ == "__main__":
-    check_and_send()
