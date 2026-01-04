@@ -391,7 +391,13 @@ def sync_classroom():
 
         count = 0
         for course in courses:
+            if course.get('courseState') != 'ACTIVE':
+                print(f"Skipping {course.get('name')} because it is {course.get('courseState')}")
+                continue
             try:
+                
+            # ---------------------------
+
                 # Fetch coursework for this specific course
                 cw_data = service.courses().courseWork().list(courseId=course['id']).execute()
                 coursework = cw_data.get('courseWork', [])
