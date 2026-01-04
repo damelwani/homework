@@ -13,7 +13,7 @@ if not database_url:
 db = SQL(database_url)
 EMAIL_ADDRESS = os.environ.get("EMAIL_ADDRESS")
 EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD")
-APP_URL = "https://homework-tracker-trivia.vercel.app"
+APP_URL = "https://homework-damelwanis-projects.vercel.app"
 
 def send_email(to_email, subject, html_body):
     msg = EmailMessage()
