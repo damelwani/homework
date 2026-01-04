@@ -7,9 +7,19 @@ from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
 from helpers import login_required
 from datetime import datetime, timedelta, date
+import json
+from google_auth_oauthlib.flow import Flow
+from googleapiclient.discovery import build
+from google.oauth2.credentials import Credentials
 
 app = Flask(__name__)
-app.config["SECRET_KEY"] = "longHomeworkSecretKey" 
+app.config["SECRET_KEY"] = "longHomeworkSecretKey"
+
+CLIENT_SECRETS_FILE = "credentials.json"
+SCOPES = [
+    'https://www.googleapis.com/auth/classroom.courses.readonly',
+    'https://www.googleapis.com/auth/classroom.coursework.me'
+]
 
 app.config["SESSION_PERMANENT"] = False
 
@@ -33,6 +43,34 @@ def format_date(value):
         return value
 
 app.jinja_env.filters['pretty_date'] = format_date
+
+@app.route("/google_login")
+@login_required
+def google_login():
+    flow = Flow.from_client_secrets_file(
+        CLIENT_SECRETS_FILE,
+        scopes=SCOPES,
+        # This automatically creates the full URL for the callback route
+        redirect_uri=url_for('google_callback', _external=True)
+    )
+    authorization_url, state = flow.authorization_url(
+        access_type='offline',
+        include_granted_scopes='true',
+        prompt='consent' 
+    )
+    session["google_state"] = state
+    return redirect(authorization_url)
+
+@app.route("/google_callback")
+@login_required
+def google_callback():
+    flow = Flow.from_client_secrets_file(
+        CLIENT_SECRETS_FILE,
+        scopes=SCOPES,
+        state=session["google_state"],
+        # Must match the redirect_uri used in the /google_login route
+        redirect_uri=url_for('google_callback', _external=True)
+    )
 
 #Partially taken from Finance problem set
 @app.route("/register", methods=["GET", "POST"])
@@ -101,6 +139,8 @@ def add():
 @app.route("/")
 @login_required
 def index():
+    user_data = db.execute("SELECT google_creds FROM users WHERE id = ?", session["user_id"])
+    google_connected = True if user_data[0]["google_creds"] else False
     # 1. Fetch the username from the database
     user_row = db.execute("SELECT username FROM users WHERE id = ?", session["user_id"])
     
@@ -142,7 +182,8 @@ def index():
         assignments=assignments, 
         today=today, 
         today_plus_2=today_plus_2,
-        current_sort=sort_by
+        current_sort=sort_by,
+        google_connected=google_connected
     )
 
 @app.route("/login", methods=["GET", "POST"])
@@ -318,3 +359,4 @@ def edit(task_id):
         return "Assignment not found", 404
         
     return render_template("edit.html", task=task[0])
+
