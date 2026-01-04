@@ -391,35 +391,33 @@ def sync_classroom():
 
         count = 0
         for course in courses:
-            # Fetch coursework for this specific course
-            cw_data = service.courses().courseWork().list(courseId=course['id']).execute()
-            coursework = cw_data.get('courseWork', [])
+            try:
+                # Fetch coursework for this specific course
+                cw_data = service.courses().courseWork().list(courseId=course['id']).execute()
+                coursework = cw_data.get('courseWork', [])
 
-            for item in coursework:
-                title = item.get('title')
-                due = item.get('dueDate') # This is None if there's no due date
-                
-                if due and title:
-                    # Format: YYYY-MM-DD
-                    due_date = f"{due['year']}-{due['month']:02d}-{due['day']:02d}"
+                for item in coursework:
+                    title = item.get('title')
+                    due = item.get('dueDate')
                     
-                    existing = db.execute("SELECT id FROM assignments WHERE user_id = ? AND title = ?", 
-                                          session["user_id"], title)
-                    
-                    if not existing:
-                        db.execute("INSERT INTO assignments (user_id, title, due_date, subject) VALUES (?, ?, ?, ?)",
-                                   session["user_id"], title, due_date, course['name'])
-                        count += 1
+                    if due and title:
+                        due_date = f"{due['year']}-{due['month']:02d}-{due['day']:02d}"
+                        existing = db.execute("SELECT id FROM assignments WHERE user_id = ? AND title = ?", 
+                                              session["user_id"], title)
+                        
+                        if not existing:
+                            db.execute("INSERT INTO assignments (user_id, title, due_date, subject) VALUES (?, ?, ?, ?)",
+                                       session["user_id"], title, due_date, course['name'])
+                            count += 1
+            except Exception as course_error:
+                print(f"Skipping course {course.get('name')} due to error: {course_error}")
+                continue # This moves to the next course if one fails
 
         flash(f"Successfully synced! {count} assignments added.")
         
     except Exception as e:
-        print(f"CRITICAL ERROR: {e}")
-        flash("Sync failed. Try clicking 'Connect Google' again to refresh permissions.")
-        # This is the "Secret Sauce" to finding the bug:
         import traceback
-        print(traceback.format_exc()) # This prints the full error to your terminal
-        
+        print(traceback.format_exc()) 
         flash(f"Sync failed: {e}")
         return redirect("/")
 
