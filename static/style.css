@@ -1,62 +1,125 @@
-body{
-    font-family: Arial, sans-serif;
-    background-color: #f0f0f0;
-    margin: 0;
-    padding: 0;
-}
-
-nav {
-    background-color: #333;
-    color: white;
-    padding: 10px 20px;
-    text-align: center;
-}
-
-main {
-    padding: 20px;
-    margin: auto;
-    max-width: 800px;
-}
-
-
-.blue {
-    color: #0066ff;
-}
-
-/* 1. Make the entire page a flex container */
-html, body {
-    height: 100%;
-    margin: 0;
+/* 1. Global Variables & Modern Reset */
+:root {
+    --primary-color: #4f46e5;    /* Modern Indigo */
+    --primary-hover: #4338ca;
+    --success-color: #22c55e;    /* Green for Done */
+    --danger-color: #ef4444;     /* Red for Overdue */
+    --warning-color: #f59e0b;    /* Yellow for Soon */
+    --text-main: #1f2937;
+    --text-muted: #6b7280;
+    --bg-color: #f9fafb;         /* Soft gray background */
 }
 
 body {
-    display: flex;
-    flex-direction: column;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    line-height: 1.5;
 }
 
-/* 2. Tell the main content area to take up all available space, 
-      pushing the footer to the very bottom */
-main {
-    flex: 1 0 auto;
+/* 2. Navbar Styling */
+.navbar {
+    background-color: white !important;
+    padding: 0.8rem 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
-/* 3. Footer styling for spacing and appearance */
-footer {
-    flex-shrink: 0;
-    padding: 20px 0;
-    background-color: #f8f9fa; /* Light gray background */
-    border-top: 1px solid #dee2e6;
-    color: #6c757d; /* Muted text color */
+.navbar-brand .blue {
+    color: var(--primary-color);
+    font-weight: 700;
+    font-size: 1.25rem;
 }
 
-/* Optional: Center the disclaimer text on mobile */
-@media (max-width: 576px) {
-    footer .container {
-        padding: 0 15px;
-    }
-}
-
+/* Style for the "by Trivia with Mom" tagline */
 .navbar-brand small {
-    text-transform: uppercase;
+    color: #000000 !important; /* Force Black */
     opacity: 0.8;
+    text-transform: none;
+}
+
+.nav-link {
+    font-weight: 500;
+    color: var(--text-main) !important;
+    transition: color 0.2s ease;
+}
+
+.nav-link:hover {
+    color: var(--primary-color) !important;
+}
+
+/* 3. Assignment Cards */
+.assignment-card {
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    transition: all 0.2s ease;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.assignment-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+    border-color: var(--primary-color);
+}
+
+.assignment-info h5 {
+    margin-bottom: 0.25rem;
+    font-weight: 600;
+    color: var(--text-main);
+}
+
+.assignment-meta {
+    font-size: 0.875rem;
+    color: var(--text-muted);
+}
+
+/* 4. Status Badges */
+.status-badge {
+    padding: 0.35rem 0.85rem;
+    border-radius: 9999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.025em;
+}
+
+.status-done { background-color: #dcfce7; color: #166534; }
+.status-urgent { background-color: #fee2e2; color: #991b1b; }
+.status-soon { background-color: #fef3c7; color: #92400e; }
+.status-pending { background-color: #f3f4f6; color: #374151; }
+
+/* 5. Buttons & Forms */
+.btn-primary {
+    background-color: var(--primary-color);
+    border: none;
+    font-weight: 600;
+    padding: 0.5rem 1.25rem;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-hover);
+}
+
+.form-control {
+    border-radius: 8px;
+    border: 1px solid #d1d5db;
+    padding: 0.6rem;
+}
+
+.form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+}
+
+/* 6. Alert Messaging */
+.alert {
+    border-radius: 10px;
+    border: none;
+    font-weight: 500;
 }
