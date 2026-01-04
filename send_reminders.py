@@ -42,7 +42,7 @@ def check_and_send():
     
     # This query finds the student and the parent linked to the student
     reminders = db.execute("""
-        SELECT a.title, a.subject, u_child.username AS student_email, u_parent.username AS parent_email
+        SELECT a.title, a.subject, u_child.email AS student_email, u_parent.email AS parent_email
         FROM assignments a
         JOIN users u_child ON a.user_id = u_child.id
         LEFT JOIN relationships r ON u_child.id = r.child_id
