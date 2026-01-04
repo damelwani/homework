@@ -16,57 +16,58 @@ db = SQL(database_url)
 EMAIL_ADDRESS = os.environ.get("EMAIL_ADDRESS")
 EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD")
 
-def send_email(to_email, subject, body):
-    if not EMAIL_ADDRESS or not EMAIL_PASSWORD:
-        print("Error: Email credentials not found in environment variables.")
-        return
-
+def send_email(to_email, subject, html_body):
     msg = EmailMessage()
-    msg.set_content(body)
     msg['Subject'] = subject
     msg['From'] = EMAIL_ADDRESS
     msg['To'] = to_email
+
+    # This allows the email to have a "fallback" for old phones, 
+    # but show the pretty HTML on Gmail/Outlook
+    msg.set_content("Please enable HTML to view this reminder.") 
+    msg.add_alternative(html_body, subtype='html')
 
     try:
         with smtplib.SMTP_SSL('smtp.gmail.com', 465) as smtp:
             smtp.login(EMAIL_ADDRESS, EMAIL_PASSWORD)
             smtp.send_message(msg)
-            print(f"Email sent successfully to {to_email}")
     except Exception as e:
-        print(f"Failed to send email: {e}")
+        print(f"Error: {e}")
 
 def check_and_send():
-    # Calculate tomorrow's date string
     tomorrow = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
-    print(f"Checking for assignments due on: {tomorrow}")
     
-    # This query finds the student and the parent linked to the student
     reminders = db.execute("""
-        SELECT a.title, a.subject, u_child.email AS student_email, u_parent.email AS parent_email
+        SELECT a.title, a.subject, u_child.username AS student_name, u_child.email AS student_email 
         FROM assignments a
         JOIN users u_child ON a.user_id = u_child.id
-        LEFT JOIN relationships r ON u_child.id = r.child_id
-        LEFT JOIN users u_parent ON r.parent_id = u_parent.id
         WHERE a.due_date = ? AND a.status != 'Completed'
     """, tomorrow)
 
-    if not reminders:
-        print("No reminders to send for tomorrow.")
-        return
-
     for r in reminders:
-        # Email for the student
-        student_sub = f"🔔 Due Tomorrow: {r['title']}"
-        student_body = f"Hi! Just a reminder that your {r['subject']} assignment '{r['title']}' is due tomorrow ({tomorrow})."
-        
-        # Send to student
-        send_email(r['student_email'], student_sub, student_body)
-        
-        # Send to parent if linked
-        if r['parent_email']:
-            parent_sub = f"Child Reminder: {r['title']} is due tomorrow"
-            parent_body = f"Hello, this is an automated update. Your child has an assignment '{r['title']}' for {r['subject']} due tomorrow."
-            send_email(r['parent_email'], parent_sub, parent_body)
+        # The HTML "Template"
+        html_content = f"""
+        <html>
+            <body style="font-family: sans-serif; background-color: #f4f7f6; padding: 20px;">
+                <div style="max-width: 500px; margin: auto; background: white; padding: 30px; border-radius: 15px; border: 1px solid #e0e0e0; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                    <h2 style="color: #4f46e5; margin-top: 0;">🔔 Due Tomorrow</h2>
+                    <p style="color: #666; font-size: 16px;">Hi {r['student_name']}, you have an assignment coming up:</p>
+                    
+                    <div style="background: #f9fafb; border-left: 4px solid #4f46e5; padding: 15px; margin: 20px 0;">
+                        <strong style="display: block; font-size: 18px; color: #111;">{r['title']}</strong>
+                        <span style="color: #666;">Subject: {r['subject']}</span>
+                    </div>
 
-if __name__ == "__main__":
-    check_and_send()
+                    <a href="https://your-app-link.vercel.app" 
+                       style="display: inline-block; background: #4f46e5; color: white; padding: 12px 25px; text-decoration: none; border-radius: 8px; font-weight: bold;">
+                       View Dashboard
+                    </a>
+                    
+                    <hr style="border: 0; border-top: 1px solid #eee; margin: 30px 0;">
+                    <p style="font-size: 12px; color: #999; text-align: center;">Sent by Homework Tracker</p>
+                </div>
+            </body>
+        </html>
+        """
+        
+        send_email(r['student_email'], f"🔔 Reminder: {r['title']} is due!", html_content)
