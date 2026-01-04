@@ -18,12 +18,12 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "longHomeworkSecretKey"
 
 CLIENT_SECRETS_FILE = "credentials.json"
+database_url = os.environ.get("DATABASE_URL")
 
-# One clean way to handle the DB connection
-# 1. Try to get the URL from the environment (for Vercel/Production)
-# 2. Fall back to your hardcoded Neon link (for local testing)
-database_url = os.environ.get("DATABASE_URL", "postgresql://neondb_owner:npg_wEKqG5s9jnlY@ep-wandering-tree-adanengq-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require")
+if not database_url:
+    database_url = "postgresql://neondb_owner:npg_wEKqG5s9jnlY@ep-wandering-tree-adanengq-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require"
 
+# Now we pass a guaranteed string into SQL()
 db = SQL(database_url)
 
 # Setup Email credentials (for the reminder script)
