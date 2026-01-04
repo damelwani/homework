@@ -369,3 +369,57 @@ def edit(task_id):
         
     return render_template("edit.html", task=task[0])
 
+@app.route("/sync_classroom")
+@login_required
+def sync_classroom():
+    # 1. Get the stored credentials from your database
+    user_row = db.execute("SELECT google_creds FROM users WHERE id = ?", session["user_id"])
+    
+    if not user_row or not user_row[0]["google_creds"]:
+        flash("Please connect to Google Classroom first.")
+        return redirect("/google_login")
+
+    # 2. Re-build the Google Credentials object
+    creds_data = json.loads(user_row[0]["google_creds"])
+    creds = Credentials.from_authorized_user_info(creds_data, SCOPES)
+
+    # 3. Connect to the Classroom Service
+    service = build('classroom', 'v1', credentials=creds)
+
+    try:
+        # Get list of all courses the student is in
+        courses_result = service.courses().list().execute()
+        courses = courses_result.get('courses', [])
+
+        count = 0
+        for course in courses:
+            # Get coursework (assignments) for each course
+            coursework_result = service.courses().courseWork().list(courseId=course['id']).execute()
+            coursework = coursework_result.get('courseWork', [])
+
+            for item in coursework:
+                title = item.get('title')
+                # Google returns dates as objects: {'year': 2024, 'month': 5, 'day': 20}
+                due = item.get('dueDate')
+                
+                if due:
+                    # Format for your Postgres DATE column (YYYY-MM-DD)
+                    due_date = f"{due['year']}-{due['month']:02d}-{due['day']:02d}"
+                    
+                    # Check if we already have this assignment (by title and user)
+                    existing = db.execute("SELECT id FROM assignments WHERE user_id = ? AND title = ?", 
+                                          session["user_id"], title)
+                    
+                    if not existing:
+                        db.execute("""
+                            INSERT INTO assignments (user_id, title, due_date, subject) 
+                            VALUES (?, ?, ?, ?)
+                        """, session["user_id"], title, due_date, course['name'])
+                        count += 1
+
+        flash(f"Sync complete! Imported {count} new assignments.")
+    except Exception as e:
+        print(f"Sync Error: {e}")
+        flash("Failed to sync assignments. Try reconnecting Google.")
+
+    return redirect("/")
