@@ -19,13 +19,16 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "longHomeworkSecretKey"
 
 CLIENT_SECRETS_FILE = "credentials.json"
-database_url = os.environ.get("DATABASE_URL")
 
-if not database_url:
-    database_url = "postgresql://neondb_owner:npg_wEKqG5s9jnlY@ep-wandering-tree-adanengq-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require"
+database_url = "postgresql://neondb_owner:npg_wEKqG5s9jnlY@ep-wandering-tree-adanengq-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require"
 
-# Now we pass a guaranteed string into SQL()
-db = SQL(database_url)
+# Log to the Vercel console so we can see what is happening
+print(f"Connecting to: {database_url}")
+
+try:
+    db = SQL(database_url)
+except Exception as e:
+    print(f"Database connection error: {e}")
 
 # Setup Email credentials (for the reminder script)
 EMAIL_ADDRESS = os.environ.get("EMAIL_ADDRESS")
