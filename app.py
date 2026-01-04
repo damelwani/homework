@@ -100,32 +100,30 @@ def google_callback():
 def register():
     if request.method == "POST":
         username = request.form.get("username")
+        email = request.form.get("email") # New field
         password = request.form.get("password")
         confirmation = request.form.get("confirmation")
         role = request.form.get("role")
 
-        if not username or not password or password != confirmation or not role:
-            flash("Check all fields and ensure passwords match")
+        if not username or not email or not password or not role:
+            flash("Check all fields")
+            return render_template("register.html")
+
+        if password != confirmation:
+            flash("Passwords do not match")
             return render_template("register.html")
 
         hash = generate_password_hash(password)
 
-        existing_user = db.execute("SELECT * FROM users WHERE username = ?", username)
-        if existing_user:
-            flash("Username already exists")
-            return render_template("register.html")
-
         try:
-            new_user_id = db.execute(
-                "INSERT INTO users (username, hash, role) VALUES (?, ?, ?)",
-                username, hash, role
+            # Add email to the INSERT statement
+            db.execute(
+                "INSERT INTO users (username, email, hash, role) VALUES (?, ?, ?, ?)",
+                username, email, hash, role
             )
-            session["user_id"] = new_user_id
-            session["role"] = role
-            return redirect("/")
+            return redirect("/login")
         except Exception as e:
-            print(f"Error: {e}")
-            flash("An internal error occurred.")
+            flash("Username already exists or error occurred")
             return render_template("register.html")
 
     return render_template("register.html")
