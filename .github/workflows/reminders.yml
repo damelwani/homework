@@ -1,0 +1,24 @@
+name: Send Daily Reminders
+on:
+  schedule:
+    # 13:00 UTC is 8:00 AM EST
+    - cron: '0 13 * * *'
+  workflow_dispatch: # Allows you to click a button to test it
+
+jobs:
+  run-reminders:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: pip install cs50 psycopg2-binary
+      - name: Run Script
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+          EMAIL_ADDRESS: ${{ secrets.EMAIL_ADDRESS }}
+          EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+        run: python send_reminders.py
