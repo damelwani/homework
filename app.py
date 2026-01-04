@@ -11,6 +11,8 @@ from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 
+os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
+
 app = Flask(__name__)
 app.config["SECRET_KEY"] = "longHomeworkSecretKey"
 
@@ -49,7 +51,6 @@ def google_login():
     flow = Flow.from_client_secrets_file(
         CLIENT_SECRETS_FILE,
         scopes=SCOPES,
-        # This automatically creates the full URL for the callback route
         redirect_uri=url_for('google_callback', _external=True)
     )
     authorization_url, state = flow.authorization_url(
@@ -66,11 +67,20 @@ def google_callback():
     flow = Flow.from_client_secrets_file(
         CLIENT_SECRETS_FILE,
         scopes=SCOPES,
-        state=session["google_state"],
-        # Must match the redirect_uri used in the /google_login route
+        state=session.get("google_state"),
         redirect_uri=url_for('google_callback', _external=True)
     )
+    
+    # This finishes the handshake
+    flow.fetch_token(authorization_response=request.url)
+    creds = flow.credentials
 
+    # Save the credentials to your database
+    db.execute("UPDATE users SET google_creds = ? WHERE id = ?", 
+               creds.to_json(), session["user_id"])
+
+    flash("Successfully connected to Google Classroom!")
+    return redirect("/")
 #Partially taken from Finance problem set
 @app.route("/register", methods=["GET", "POST"])
 def register():
