@@ -19,10 +19,16 @@ app.config["SECRET_KEY"] = "longHomeworkSecretKey"
 
 CLIENT_SECRETS_FILE = "credentials.json"
 
-db = SQL(os.environ.get("DATABASE_URL"))
+# One clean way to handle the DB connection
+# 1. Try to get the URL from the environment (for Vercel/Production)
+# 2. Fall back to your hardcoded Neon link (for local testing)
+database_url = os.environ.get("DATABASE_URL", "postgresql://neondb_owner:npg_wEKqG5s9jnlY@ep-wandering-tree-adanengq-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require")
+
+db = SQL(database_url)
+
+# Setup Email credentials (for the reminder script)
 EMAIL_ADDRESS = os.environ.get("EMAIL_ADDRESS")
 EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD")
-
 SCOPES = [
     'https://www.googleapis.com/auth/classroom.courses.readonly',
     'https://www.googleapis.com/auth/classroom.coursework.me'
@@ -30,8 +36,7 @@ SCOPES = [
 
 app.config["SESSION_PERMANENT"] = False
 
-db=SQL(os.environ.get("DATABASE_URL", "postgresql://neondb_owner:npg_wEKqG5s9jnlY@ep-wandering-tree-adanengq-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require"))
-db = SQL("postgresql://neondb_owner:npg_wEKqG5s9jnlY@ep-wandering-tree-adanengq-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require&channel_binding=require")
+
 
 #From AI
 def format_date(value):
