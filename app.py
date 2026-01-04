@@ -17,6 +17,7 @@ app = Flask(__name__)
 app.config["SECRET_KEY"] = "longHomeworkSecretKey"
 
 CLIENT_SECRETS_FILE = "credentials.json"
+
 SCOPES = [
     'https://www.googleapis.com/auth/classroom.courses.readonly',
     'https://www.googleapis.com/auth/classroom.coursework.me'
