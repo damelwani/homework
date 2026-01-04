@@ -56,7 +56,7 @@ def google_login():
     authorization_url, state = flow.authorization_url(
         access_type='offline',
         include_granted_scopes='true',
-        prompt='consent' 
+        prompt='consent'
     )
     session["google_state"] = state
     return redirect(authorization_url)
