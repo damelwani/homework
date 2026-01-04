@@ -415,5 +415,11 @@ def sync_classroom():
     except Exception as e:
         print(f"CRITICAL ERROR: {e}")
         flash("Sync failed. Try clicking 'Connect Google' again to refresh permissions.")
+        # This is the "Secret Sauce" to finding the bug:
+        import traceback
+        print(traceback.format_exc()) # This prints the full error to your terminal
+        
+        flash(f"Sync failed: {e}")
+        return redirect("/")
 
     return redirect("/")
