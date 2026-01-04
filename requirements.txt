@@ -4,3 +4,5 @@ cs50
 datetime
 requests
 psycopg2-binary
+google-auth-oauthlib
+google-api-python-client
