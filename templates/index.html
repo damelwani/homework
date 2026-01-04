@@ -8,7 +8,14 @@
     <div class="mb-4">
         <h2>Welcome, {{ username }}!</h2>
     </div>
-
+    {% if not google_connected %}
+    <div class="alert alert-info">
+        Want to import your school work? 
+        <a href="/google_login" class="btn btn-outline-primary btn-sm">Connect Google Classroom</a>
+    </div>
+{% else %}
+    <a href="/sync_classroom" class="btn btn-success btn-sm">Sync Assignments</a>
+{% endif %}
     {% if assignments %}
     <div class="table-responsive">
     <table class="table table-hover align-middle">
