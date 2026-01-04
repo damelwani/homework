@@ -413,12 +413,30 @@ def sync_classroom():
                 cw_data = service.courses().courseWork().list(courseId=course['id']).execute()
                 coursework = cw_data.get('courseWork', [])
 
+                # ... inside the sync_classroom loop after fetching coursework ...
                 for item in coursework:
                     title = item.get('title')
                     due = item.get('dueDate')
+                    item_id = item.get('id')
                     
-                    if due and title:
+                    # NEW: Check if the student has already turned this in
+                    submissions = service.courses().courseWork().studentSubmissions().list(
+                        courseId=course['id'], 
+                        courseWorkId=item_id
+                    ).execute().get('studentSubmissions', [])
+                
+                    # If there's a submission, check the state
+                    is_completed = False
+                    if submissions:
+                        state = submissions[0].get('state')
+                        # States like 'TURNED_IN' or 'RETURNED' mean the work is done
+                        if state in ['TURNED_IN', 'RETURNED']:
+                            is_completed = True
+                
+                    # Only add to our DB if it's NOT completed and has a due date
+                    if not is_completed and due and title:
                         due_date = f"{due['year']}-{due['month']:02d}-{due['day']:02d}"
+                        
                         existing = db.execute("SELECT id FROM assignments WHERE user_id = ? AND title = ?", 
                                               session["user_id"], title)
                         
