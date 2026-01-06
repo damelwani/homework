@@ -11,7 +11,6 @@ from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 import smtplib
-from collections import defaultdict
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
@@ -137,12 +136,12 @@ def schedule():
         return redirect("/login")
 
     user_id = session["user_id"]
-    role = session.get("role")  # Assuming you store 'student' or 'parent' in session
+    role = session.get("role")
 
-    # 1. Handle Adding Class Schedule (Students Only)
+    # 1. Students can ADD to their schedule
     if request.method == "POST":
         if role == "parent":
-            return "Unauthorized", 403
+            return "Parents cannot edit schedules", 403
             
         subject = request.form.get("subject")
         cycle_day = request.form.get("cycle_day").upper()
@@ -155,29 +154,33 @@ def schedule():
         """, user_id, subject, cycle_day, period, start_time)
         return redirect("/schedule")
 
-    # 2. Logic for PARENT View (Read-only Assignment Schedule)
+    # 2. Logic for PARENT (See all kids' class schedules)
     if role == "parent":
-        # Get assignments for all linked students
-        family_work = db.execute("""
-            SELECT a.*, u.username 
-            FROM assignments a
-            JOIN links l ON a.user_id = l.student_id 
-            JOIN users u ON a.user_id = u.id
+        # Get class schedules for all linked children
+        family_classes = db.execute("""
+            SELECT s.subject_name, s.cycle_day, s.period, 
+                   TO_CHAR(s.start_time, 'HH24:MI') as start_time,
+                   u.username as student_name
+            FROM schedule s
+            JOIN links l ON s.user_id = l.student_id 
+            JOIN users u ON s.user_id = u.id
             WHERE l.parent_id = ?
-            ORDER BY a.due_date ASC
+            ORDER BY u.username, s.cycle_day ASC, s.start_time ASC
         """, user_id)
         
-        # Group work by student name for the template
-        grouped_work = defaultdict(list)
-        for task in family_work:
-            grouped_work[task['username']].append(task)
+        # Group classes by child name
+        grouped_classes = {}
+        for row in family_classes:
+            name = row['student_name']
+            if name not in grouped_classes:
+                grouped_classes[name] = []
+            grouped_classes[name].append(row)
             
-        return render_template("schedule.html", grouped_work=dict(grouped_work))
+        return render_template("schedule.html", grouped_classes=grouped_classes)
 
-    # 3. Logic for STUDENT View (Their own classes or assignments)
+    # 3. Logic for STUDENT (See their own class schedule)
     else:
-        # Fetching the student's class schedule (your existing code)
-        user_classes = db.execute("""
+        user_schedule = db.execute("""
             SELECT id, subject_name, cycle_day, period, 
                    TO_CHAR(start_time, 'HH24:MI') as start_time 
             FROM schedule 
@@ -185,16 +188,7 @@ def schedule():
             ORDER BY cycle_day ASC, start_time ASC
         """, user_id)
         
-        # Fetching the student's personal assignment schedule
-        assignments = db.execute("""
-            SELECT * FROM assignments 
-            WHERE user_id = ? 
-            ORDER BY due_date ASC
-        """, user_id)
-        
-        return render_template("schedule.html", 
-                               schedule=user_classes, 
-                               assignments=assignments)
+        return render_template("schedule.html", schedule=user_schedule)
 
 @app.route("/delete_schedule/<int:id>", methods=["POST"])
 def delete_schedule(id):
