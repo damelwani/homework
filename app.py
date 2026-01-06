@@ -137,8 +137,8 @@ def schedule():
 
     user_id = session["user_id"]
     role = session.get("role")
+    today = date.today() # Define this for the template logic
 
-    # 1. Students can ADD to their schedule
     if request.method == "POST":
         if role == "parent":
             return "Parents cannot edit schedules", 403
@@ -154,21 +154,18 @@ def schedule():
         """, user_id, subject, cycle_day, period, start_time)
         return redirect("/schedule")
 
-    # 2. Logic for PARENT (See all kids' class schedules)
     if role == "parent":
-        # Get class schedules for all linked children
         family_classes = db.execute("""
             SELECT s.subject_name, s.cycle_day, s.period, 
                    TO_CHAR(s.start_time, 'HH24:MI') as start_time,
                    u.username as student_name
             FROM schedule s
-            JOIN links l ON s.user_id = l.student_id 
+            JOIN relationships l ON s.user_id = l.child_id 
             JOIN users u ON s.user_id = u.id
             WHERE l.parent_id = ?
             ORDER BY u.username, s.cycle_day ASC, s.start_time ASC
         """, user_id)
         
-        # Group classes by child name
         grouped_classes = {}
         for row in family_classes:
             name = row['student_name']
@@ -176,9 +173,8 @@ def schedule():
                 grouped_classes[name] = []
             grouped_classes[name].append(row)
             
-        return render_template("schedule.html", grouped_classes=grouped_classes)
+        return render_template("schedule.html", grouped_classes=grouped_classes, today=today)
 
-    # 3. Logic for STUDENT (See their own class schedule)
     else:
         user_schedule = db.execute("""
             SELECT id, subject_name, cycle_day, period, 
@@ -188,7 +184,7 @@ def schedule():
             ORDER BY cycle_day ASC, start_time ASC
         """, user_id)
         
-        return render_template("schedule.html", schedule=user_schedule)
+        return render_template("schedule.html", schedule=user_schedule, today=today)
 
 @app.route("/delete_schedule/<int:id>", methods=["POST"])
 def delete_schedule(id):
@@ -352,6 +348,7 @@ def logout():
 @login_required
 def parent_view():
     today=date.today()
+    today_plus_2 = today + timedelta(days=2)
     # Get the sorting preference (default to 'child')
     sort_by = request.args.get("sort", "child")
     
