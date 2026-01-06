@@ -129,33 +129,60 @@ def register():
     return render_template("register.html")
 
 
-@app.route("/add", methods=["GET", "POST"])
-@login_required
-def add():
+@app.route("/schedule", methods=["GET", "POST"])
+def schedule():
+    if not session.get("user_id"):
+        return redirect("/login")
+
     if request.method == "POST":
-        name = request.form.get("name")
-        if not name:
-            flash("Name is required")
-            return render_template("add.html")
-
-        due_date = request.form.get("due_date")
-        if not due_date:
-            flash("Due date is required")
-            return render_template("add.html")
-
         subject = request.form.get("subject")
-        if not subject:
-            flash("Subject is required")
-            return render_template("add.html")
-        db.execute(
-            "INSERT INTO assignments (user_id, title, due_date, subject) VALUES (?, ?, ?, ?)",
-        session["user_id"], name, due_date, subject
-        )
+        cycle_day = request.form.get("cycle_day").upper()
+        period = request.form.get("period")
+        start_time = request.form.get("start_time")
 
+        db.execute("""
+            INSERT INTO schedule (user_id, subject_name, cycle_day, period, start_time) 
+            VALUES (?, ?, ?, ?, ?)
+        """, session["user_id"], subject, cycle_day, period, start_time)
+        return redirect("/schedule")
+
+    # Fetch and sort by Day then Time
+    user_schedule = db.execute("""
+        SELECT * FROM schedule 
+        WHERE user_id = ? 
+        ORDER BY cycle_day ASC, start_time ASC
+    """, session["user_id"])
+    
+    return render_template("schedule.html", schedule=user_schedule)
+
+@app.route("/delete_schedule/<int:id>", methods=["POST"])
+def delete_schedule(id):
+    db.execute("DELETE FROM schedule WHERE id = ? AND user_id = ?", id, session["user_id"])
+    return redirect("/schedule")
+
+@app.route("/clear_schedule", methods=["POST"])
+def clear_schedule():
+    db.execute("DELETE FROM schedule WHERE user_id = ?", session["user_id"])
+    return redirect("/schedule")
+
+@app.route("/add", methods=["GET", "POST"])
+def add_assignment():
+    if not session.get("user_id"):
+        return redirect("/login")
+
+    if request.method == "POST":
+        title = request.form.get("title")
+        subject = request.form.get("subject")
+        due_date = request.form.get("due_date")
+        
+        db.execute("INSERT INTO assignments (user_id, title, subject, due_date) VALUES (?, ?, ?, ?)",
+                   session["user_id"], title, subject, due_date)
         return redirect("/")
 
-    else:
-        return render_template("add.html")
+    # Fetch unique subjects for the dropdown
+    subjects = db.execute("SELECT DISTINCT subject_name FROM schedule WHERE user_id = ? ORDER BY subject_name", 
+                          session["user_id"])
+    return render_template("add.html", subjects=subjects)
 
 @app.route("/")
 @login_required
