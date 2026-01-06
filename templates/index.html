@@ -8,75 +8,93 @@
     <div class="mb-4">
         <h2>Welcome, {{ username }}!</h2>
     </div>
+
     <div class="mb-4">
-    {% if google_connected %}
-        <a href="/sync_classroom" class="btn btn-success">Sync from Google</a>
-        
-        <a href="/google_login" class="btn btn-link btn-sm text-muted">Reconnect Account</a>
-    {% else %}
-        <a href="/google_login" class="btn btn-primary">Connect Google Classroom</a>
-    {% endif %}
-</div>
+        {% if google_connected %}
+            <a href="/sync_classroom" class="btn btn-success">Sync from Google</a>
+            <a href="/google_login" class="btn btn-link btn-sm text-muted">Reconnect Account</a>
+        {% else %}
+            <a href="/google_login" class="btn btn-primary">Connect Google Classroom</a>
+        {% endif %}
+    </div>
+
     {% if assignments %}
     <div class="table-responsive shadow-sm rounded-3">
-    <table class="table table-hover align-middle bg-white mb-0">
-        <thead class="table-light">
-            <tr>
-                <th class="d-none d-md-table-cell" style="width: 15%;">Subject</th>
-                <th style="width: 40%;">Assignment</th>
-                <th style="width: 20%;">Due Date</th>
-                <th class="d-none d-sm-table-cell" style="width: 10%;">Status</th>
-                <th class="text-end" style="width: 15%;">Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for task in assignments %}
-            <tr class="{% if task.status == 'Completed' %}table-success text-muted{% elif task.due_date < today %}table-danger{% endif %}">
-                
-                <td class="d-none d-md-table-cell">
-                    <span class="badge {% if task.status == 'Completed' %}bg-secondary opacity-50{% else %}bg-indigo{% endif %}">
-                        {{ task.subject or "General" }}
-                    </span>
-                </td>
-                
-                <td class="fw-bold {% if task.status == 'Completed' %}text-decoration-line-through text-opacity-50{% endif %}">
-                    {{ task.title }}
-                </td>
-                
-                <td class="text-nowrap">
-                    <span class="{% if task.status != 'Completed' %}
-                                    {% if task.due_date < today %} text-danger fw-bold
-                                    {% elif task.due_date == today %} text-warning fw-bold
-                                    {% elif task.due_date <= today_plus_2 %} text-primary
-                                    {% endif %}
-                                 {% endif %}">
-                        {{ task.due_date | pretty_date }}
-                    </span>
+        <table class="table table-hover align-middle bg-white mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th class="d-none d-md-table-cell" style="width: 15%;">Subject</th>
+                    <th style="width: 40%;">Assignment</th>
+                    <th style="width: 20%;">Due Date</th>
+                    <th class="d-none d-sm-table-cell" style="width: 10%;">Status</th>
+                    <th class="text-end" style="width: 15%;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for task in assignments %}
+                <tr class="{% if task.status == 'Completed' %}table-success text-muted{% elif task.due_date < today %}table-danger{% endif %}">
+                    
+                    <td class="d-none d-md-table-cell">
+                        <span class="badge {% if task.status == 'Completed' %}bg-secondary opacity-50{% else %}bg-indigo{% endif %}">
+                            {{ task.subject or "General" }}
+                        </span>
+                    </td>
+                    
+                    <td class="fw-bold {% if task.status == 'Completed' %}text-decoration-line-through text-opacity-50{% endif %}">
+                        {{ task.title }}
+                    </td>
+                    
+                    <td class="text-nowrap">
+                        <span class="{% if task.status != 'Completed' %}
+                                        {% if task.due_date < today %} text-danger fw-bold
+                                        {% elif task.due_date == today %} text-warning fw-bold
+                                        {% elif task.due_date <= today_plus_2 %} text-primary
+                                        {% endif %}
+                                     {% endif %}">
+                            {{ task.due_date | pretty_date }}
+                        </span>
 
-                    {% if task.status != 'Completed' %}
-                        {% if task.due_date < today %}
-                            <span class="badge rounded-pill bg-danger ms-1">Overdue</span>
-                        {% elif task.due_date == today %}
-                            <span class="badge rounded-pill bg-warning text-dark ms-1">Today</span>
-                        {% elif task.due_date <= today_plus_2 %}
-                            <span class="badge rounded-pill bg-info text-dark ms-1">Soon</span>
+                        {% if task.status != 'Completed' %}
+                            {% if task.due_date < today %}
+                                <span class="badge rounded-pill bg-danger ms-1">Overdue</span>
+                            {% elif task.due_date == today %}
+                                <span class="badge rounded-pill bg-warning text-dark ms-1">Today</span>
+                            {% elif task.due_date <= today_plus_2 %}
+                                <span class="badge rounded-pill bg-info text-dark ms-1">Soon</span>
+                            {% endif %}
                         {% endif %}
-                    {% endif %}
-                </td>
-                
-                <td class="d-none d-sm-table-cell">
-                    <small class="text-uppercase fw-bold opacity-75" style="font-size: 0.7rem;">
-                        {{ task.status }}
-                    </small>
-                </td>
-                
-                <td class="text-end">
-                    <div class="d-flex justify-content-end gap-1">
-                        <form action="/update" method="post" class="d-inline">
-                            <input type="hidden" name="id" value="{{ task.id }}">
-                            <button type="submit" 
-                                    name="status" 
-                                    value="{{ 'Completed'
+                    </td>
+                    
+                    <td class="d-none d-sm-table-cell">
+                        <small class="text-uppercase fw-bold opacity-75" style="font-size: 0.7rem;">
+                            {{ task.status }}
+                        </small>
+                    </td>
+                    
+                    <td class="text-end">
+                        <div class="d-flex justify-content-end gap-1">
+                            <form action="/update" method="post" class="d-inline">
+                                <input type="hidden" name="id" value="{{ task.id }}">
+                                <button type="submit" 
+                                        name="status" 
+                                        value="{{ 'Completed' if task.status == 'Pending' else 'Pending' }}" 
+                                        class="btn btn-sm {% if task.status == 'Pending' %}btn-success{% else %}btn-outline-secondary{% endif %}"
+                                        {% if task.status == 'Pending' %} onclick="celebrate()" {% endif %}>
+                                    {{ "Done" if task.status == 'Pending' else "Undo" }}
+                                </button>
+                            </form>
+                            <a href="/edit/{{ task.id }}" class="btn btn-sm btn-outline-primary">Edit</a>
+                            <form action="/delete" method="post" class="d-inline" onsubmit="return confirm('Delete?');">
+                                <input type="hidden" name="id" value="{{ task.id }}">
+                                <button type="submit" class="btn btn-sm btn-danger">&times;</button>
+                            </form>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
     {% else %}
         <div class="text-center py-5 border rounded bg-light">
             <h3 class="text-secondary"> No assignments due!</h3>
