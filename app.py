@@ -351,6 +351,7 @@ def logout():
 @app.route("/parent")
 @login_required
 def parent_view():
+    today=date.today()
     # Get the sorting preference (default to 'child')
     sort_by = request.args.get("sort", "child")
     
