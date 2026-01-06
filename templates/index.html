@@ -8,6 +8,40 @@
     <div class="mb-4">
         <h2>Welcome, {{ username }}!</h2>
     </div>
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-4">
+        <div class="card h-100 border-0 shadow-sm {% if overdue_count > 0 %}bg-danger-subtle border-start border-danger border-4{% endif %}">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-1 text-muted small uppercase">Overdue</h6>
+                <h2 class="card-title mb-0 fw-bold {% if overdue_count > 0 %}text-danger{% endif %}">
+                    {{ overdue_count }}
+                </h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-6 col-md-4">
+        <div class="card h-100 border-0 shadow-sm {% if today_count > 0 %}bg-warning-subtle border-start border-warning border-4{% endif %}">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-1 text-muted small uppercase">Due Today</h6>
+                <h2 class="card-title mb-0 fw-bold {% if today_count > 0 %}text-warning-emphasis{% endif %}">
+                    {{ today_count }}
+                </h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-12 col-md-4">
+        <div class="card h-100 border-0 shadow-sm bg-success-subtle border-start border-success border-4">
+            <div class="card-body">
+                <h6 class="card-subtitle mb-1 text-muted small uppercase">Finished Lately</h6>
+                <h2 class="card-title mb-0 fw-bold text-success">
+                    {{ completed_this_week }}
+                </h2>
+            </div>
+        </div>
+    </div>
+</div>
 
     <div class="mb-4">
         {% if google_connected %}
