@@ -350,13 +350,18 @@ def parent_view():
         if isinstance(task["due_date"], str):
             task["due_date"] = datetime.strptime(task["due_date"], '%Y-%m-%d').date()
         family_work.append(task)
+        
+    overdue_count = sum(1 for t in family_work if t['due_date'] < today and t['status'] != 'Completed')
+    today_count = sum(1 for t in family_work if t['due_date'] == today and t['status'] != 'Completed')
+    completed_count = sum(1 for t in family_work if t['status'] == 'Completed')
 
     return render_template("parent.html", 
-                           family_work=family_work, 
-                           today=date.today(), 
-                           today_plus_2=date.today() + timedelta(days=2),
-                           current_sort=sort_by)
-    
+        family_work=family_work, 
+        overdue_count=overdue_count, 
+        today_count=today_count, 
+        completed_count=completed_count,
+        today=today,
+        today_plus_2=today_plus_2)
 #Parent link code partially from AI
 @app.route("/link", methods=["GET", "POST"])
 @login_required
