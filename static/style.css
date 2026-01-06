@@ -126,6 +126,12 @@ body {
     color: white !important;
 }
 
+.card-subtitle {
+    letter-spacing: 0.05em;
+    font-weight: 700;
+    font-size: 0.7rem;
+}
+
 /* Adjust table row colors for dark mode visibility */
 [data-bs-theme="dark"] .table-danger {
     background-color: rgba(220, 53, 69, 0.25) !important;
