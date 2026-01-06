@@ -1,7 +1,7 @@
 <!--Basic framework from AI-->
 <!DOCTYPE html>
 
-<html lang="en">
+<html lang="en" data-bs-theme="auto">
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="initial-scale=1, width=device-width">
@@ -17,6 +17,35 @@
         <link href="/static/style.css" rel="stylesheet">
 
         <title>Homework Tracker: {% block title %}{% endblock %}</title>
+
+        <script>
+  (() => {
+    'use strict'
+    const getStoredTheme = () => localStorage.getItem('theme')
+    const getPreferredTheme = () => {
+      const storedTheme = getStoredTheme()
+      if (storedTheme) { return storedTheme }
+      return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    }
+
+    const setTheme = theme => {
+      if (theme === 'auto') {
+        document.documentElement.setAttribute('data-bs-theme', (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'))
+      } else {
+        document.documentElement.setAttribute('data-bs-theme', theme)
+      }
+    }
+
+    setTheme(getPreferredTheme())
+
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', () => {
+      const storedTheme = getStoredTheme()
+      if (storedTheme !== 'light' && storedTheme !== 'dark') {
+        setTheme(getPreferredTheme())
+      }
+    })
+  })()
+</script>
     </head>
     <body>
         <!-- Navbar taken from Finance problem set -->
