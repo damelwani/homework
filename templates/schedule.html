@@ -1,61 +1,142 @@
 {% extends "layout.html" %}
 
-{# 1. DEFINE THE MACRO FIRST AT THE TOP #}
-{% macro render_class_card(item, read_only) %}
-<div class="col-md-6 col-lg-4">
-    <div class="card border-0 shadow-sm h-100 bg-body-tertiary">
-        <div class="card-body">
-            <div class="d-flex justify-content-between align-items-start mb-2">
-                <span class="badge bg-indigo-subtle text-indigo px-2 py-1">Day {{ item.cycle_day }}</span>
-                <span class="text-muted small fw-bold">Period {{ item.period }}</span>
-            </div>
-            <h5 class="card-title fw-bold mb-1">{{ item.subject_name }}</h5>
-            <div class="d-flex justify-content-between align-items-center mt-3">
-                <div class="text-muted small"><i class="bi bi-clock me-1"></i>{{ item.start_time }}</div>
+{# --- 1. DEFINE THE TABLE MACRO AT THE TOP --- #}
+{% macro render_schedule_table(rows, read_only) %}
+<div class="table-responsive shadow-sm rounded-3">
+    <table class="table table-hover align-middle mb-0">
+        <thead class="bg-body-secondary">
+            <tr class="text-uppercase small fw-bold">
+                <th style="width: 15%">Day</th>
+                <th style="width: 15%">Period</th>
+                <th style="width: 40%">Subject</th>
+                <th style="width: 20%">Start Time</th>
+                {% if not read_only %}<th style="width: 10%" class="text-end">Actions</th>{% endif %}
+            </tr>
+        </thead>
+        <tbody>
+            {% for row in rows %}
+            <tr>
+                <td>
+                    <span class="badge bg-indigo-subtle text-indigo border border-indigo-subtle px-2 py-1">
+                        Day {{ row.cycle_day }}
+                    </span>
+                </td>
+                <td class="fw-bold">P{{ row.period }}</td>
+                <td class="fw-bold text-body">{{ row.subject_name }}</td>
+                <td class="text-muted">
+                    <i class="bi bi-clock me-1"></i>{{ row.start_time }}
+                </td>
                 {% if not read_only %}
-                    <form action="/delete_schedule/{{ item.id }}" method="post" onsubmit="return confirm('Remove class?');">
-                        <button type="submit" class="btn btn-link btn-sm text-danger p-0"><i class="bi bi-trash"></i></button>
+                <td class="text-end">
+                    <form action="/delete_schedule/{{ row.id }}" method="post" class="d-inline" onsubmit="return confirm('Delete this class?');">
+                        <button type="submit" class="btn btn-link text-danger p-0">
+                            <i class="bi bi-trash"></i>
+                        </button>
                     </form>
+                </td>
                 {% endif %}
-            </div>
-        </div>
-    </div>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
 {% endmacro %}
 
-{# 2. NOW START YOUR MAIN CONTENT #}
 {% block main %}
 <div class="mb-4 d-flex justify-content-between align-items-center">
     <div>
         <h2 class="fw-bold"><i class="bi bi-calendar3 me-2 text-indigo"></i>Class Schedule</h2>
-        <p class="text-muted">{% if session['role'] == 'parent' %}Viewing linked student timetables.{% else %}Your personal class timeline.{% endif %}</p>
+        <p class="text-muted mb-0">
+            {% if session['role'] == 'parent' %}
+                Viewing linked student class rotations.
+            {% else %}
+                Manage your daily class cycle and periods.
+            {% endif %}
+        </p>
     </div>
     {% if session['role'] == 'student' %}
         <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#addClassModal">
-            <i class="bi bi-plus-lg"></i> Add Class
+            <i class="bi bi-plus-lg me-1"></i> Add Class
         </button>
     {% endif %}
 </div>
 
-<div class="row g-4">
-    {% if session['role'] == 'parent' and grouped_classes %}
+<hr class="mb-4 opacity-10">
+
+{% if session['role'] == 'parent' %}
+    {# --- PARENT VIEW --- #}
+    {% if grouped_classes %}
         {% for student_name, classes in grouped_classes.items() %}
-            <div class="col-12 mb-2 mt-4">
-                <h4 class="fw-bold border-bottom pb-2"><i class="bi bi-person-badge me-2"></i>{{ student_name }}</h4>
+            <div class="mb-5">
+                <h4 class="fw-bold mb-3"><i class="bi bi-person-circle me-2"></i>{{ student_name }}'s Schedule</h4>
+                {{ render_schedule_table(classes, read_only=True) }}
             </div>
-            {% for item in classes %}
-                {{ render_class_card(item, read_only=True) }}
-            {% endfor %}
-        {% endfor %}
-    {% elif schedule %}
-        {% for item in schedule %}
-            {{ render_class_card(item, read_only=False) }}
         {% endfor %}
     {% else %}
-        <div class="text-center py-5">
-            <p class="text-muted">No classes added yet.</p>
+        <div class="text-center py-5 border rounded bg-body-tertiary">
+            <i class="bi bi-people text-muted display-4"></i>
+            <p class="text-muted mt-3">No linked students found or no schedules available.</p>
         </div>
     {% endif %}
+
+{% else %}
+    {# --- STUDENT VIEW --- #}
+    {% if schedule %}
+        {{ render_schedule_table(schedule, read_only=False) }}
+        
+        <div class="mt-4 pt-3 border-top">
+            <form action="/clear_schedule" method="post" onsubmit="return confirm('This will delete your ENTIRE schedule. Proceed?');">
+                <button type="submit" class="btn btn-outline-danger btn-sm">
+                    <i class="bi bi-exclamaition-triangle me-1"></i> Clear Entire Schedule
+                </button>
+            </form>
+        </div>
+    {% else %}
+        <div class="text-center py-5 border rounded bg-body-tertiary">
+            <i class="bi bi-calendar-x text-muted display-4"></i>
+            <p class="text-muted mt-3">Your schedule is empty. Use the "Add Class" button to get started.</p>
+        </div>
+    {% endif %}
+{% endif %}
+
+{# --- ADD CLASS MODAL (Student Only) --- #}
+{% if session['role'] == 'student' %}
+<div class="modal fade" id="addClassModal" tabindex="-1" aria-labelledby="addClassModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header border-bottom-0">
+                <h5 class="modal-title fw-bold" id="addClassModalLabel">Add New Class</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form action="/schedule" method="POST">
+                <div class="modal-body py-0">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-muted uppercase">Subject Name</label>
+                        <input type="text" name="subject" class="form-control" placeholder="e.g., AP History" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label small fw-bold text-muted uppercase">Cycle Day</label>
+                            <input type="text" name="cycle_day" class="form-control" placeholder="e.g., A or 1" required>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label small fw-bold text-muted uppercase">Period</label>
+                            <input type="number" name="period" class="form-control" min="1" max="12" required>
+                        </div>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label small fw-bold text-muted uppercase">Start Time</label>
+                        <input type="time" name="start_time" class="form-control" required>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pb-4">
+                    <button type="button" class="btn btn-light px-4" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary px-4">Add to Schedule</button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
+{% endif %}
 
 {% endblock %}
