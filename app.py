@@ -236,7 +236,7 @@ def index():
         today=today, 
         today_plus_2=today_plus_2,
         current_sort=sort_by,
-        google_connected=google_connected
+        google_connected=google_connected,
         overdue_count=overdue_count,
         today_count=today_count,
         completed_this_week=completed_this_week
