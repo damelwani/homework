@@ -51,12 +51,7 @@
         <!-- Navbar taken from Finance problem set -->
       <nav class="navbar navbar-expand-md border-bottom">
     <div class="container-fluid">
-        <a class="navbar-brand d-flex align-items-baseline" href="/">
-            <span class="text-primary fw-bold">Homework Tracker</span>
-            <small class="ms-2 text-body-secondary fw-normal" style="font-size: 0.6em; letter-spacing: 0.5px;">
-                by Trivia with Mom
-            </small>
-        </a>
+        
         <button aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation" class="navbar-toggler" data-bs-target="#navbar" data-bs-toggle="collapse" type="button">
             <span class="navbar-toggler-icon"></span>
         </button>
@@ -64,10 +59,22 @@
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                 {% if session["user_id"] %}
                     {% if session["role"] == "parent" %}
+                <a class="navbar-brand d-flex align-items-baseline" href="/parent">
+            <span class="text-primary fw-bold">Homework Tracker</span>
+            <small class="ms-2 text-body-secondary fw-normal" style="font-size: 0.6em; letter-spacing: 0.5px;">
+                by Trivia with Mom
+            </small>
+        </a>
                         <li class="nav-item"><a class="nav-link" href="/parent">Family Dashboard</a></li>
                         <li class="nav-item"><A class="nav-link" href="schedule">Family Schedules</a></li>
                         <li class="nav-item"><a class="nav-link" href="/link">Link Student</a></li>
                     {% else %}
+                <a class="navbar-brand d-flex align-items-baseline" href="/">
+            <span class="text-primary fw-bold">Homework Tracker</span>
+            <small class="ms-2 text-body-secondary fw-normal" style="font-size: 0.6em; letter-spacing: 0.5px;">
+                by Trivia with Mom
+            </small>
+        </a>
                         <li class="nav-item"><a class="nav-link" href="/">My Assignments</a></li>
                         <li class="nav-item"><a class="nav-link" href="/add">Add Assignment</a></li>
                         <li class="nav-item"><a class="nav-link" href="/schedule">Schedule</a></li>
