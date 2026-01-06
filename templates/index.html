@@ -9,24 +9,30 @@
         <h2>Welcome, {{ username }}!</h2>
     </div>
 
-    <div class="col-6 col-md-4">
-        <div class="card h-100 border-0 shadow-sm {% if today_count > 0 %}bg-warning-subtle border-start border-warning border-4{% endif %}">
-            <div class="card-body">
-                <h6 class="card-subtitle mb-1 text-muted small uppercase">Due Today</h6>
-                <h2 class="card-title mb-0 fw-bold {% if today_count > 0 %}text-warning-emphasis{% endif %}">
-                    {{ today_count }}
-                </h2>
+<div class="row g-3 mb-4 text-center">
+    <div class="col-md-4">
+        <div class="card bg-danger-subtle border-0 shadow-sm h-100">
+            <div class="card-body py-4">
+                <h6 class="text-danger fw-bold text-uppercase small">Overdue</h6>
+                <h2 class="display-5 fw-bold text-danger mb-0">{{ overdue_count }}</h2>
             </div>
         </div>
     </div>
 
-    <div class="col-12 col-md-4">
-        <div class="card h-100 border-0 shadow-sm bg-success-subtle border-start border-success border-4">
-            <div class="card-body">
-                <h6 class="card-subtitle mb-1 text-muted small uppercase">Finished Lately</h6>
-                <h2 class="card-title mb-0 fw-bold text-success">
-                    {{ completed_this_week }}
-                </h2>
+    <div class="col-md-4">
+        <div class="card bg-primary-subtle border-0 shadow-sm h-100">
+            <div class="card-body py-4">
+                <h6 class="text-primary fw-bold text-uppercase small">Due Today</h6>
+                <h2 class="display-5 fw-bold text-primary mb-0">{{ today_count }}</h2>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card bg-success-subtle border-0 shadow-sm h-100">
+            <div class="card-body py-4">
+                <h6 class="text-success fw-bold text-uppercase small">Finished Lately</h6>
+                <h2 class="display-5 fw-bold text-success mb-0">{{ completed_this_week }}</h2>
             </div>
         </div>
     </div>
