@@ -1,20 +1,50 @@
 {% extends "layout.html" %}
 
-{% block title %}
-    Add
-{% endblock %}
+{% block title %}Add Assignment{% endblock %}
 
 {% block main %}
-    <form action="/add" method="post">
-        <div class="mb-3">
-            <input class="form-control" class="form-control mx-auto w-auto" name="name" placeholder="Name" type="text">
+<div class="container py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="card shadow-sm border-0">
+                <div class="card-body p-4">
+                    <h3 class="fw-bold mb-4 text-center">New Assignment</h3>
+                    
+                    <form action="/add" method="post">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Assignment Title</label>
+                            <input name="title" class="form-control form-control-lg" placeholder="e.g. Chapter 4 Quiz" required>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Subject</label>
+                            {% if subjects %}
+                                <select name="subject" class="form-select form-select-lg" required>
+                                    <option disabled selected value="">Choose class...</option>
+                                    {% for s in subjects %}
+                                        <option value="{{ s.subject_name }}">{{ s.subject_name }}</option>
+                                    {% endfor %}
+                                </select>
+                            {% else %}
+                                <div class="alert alert-warning">
+                                    No subjects found! <a href="/schedule" class="alert-link">Setup your schedule first.</a>
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-bold">Due Date</label>
+                            <input type="date" name="due_date" class="form-control form-control-lg" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary btn-lg w-100 fw-bold" {% if not subjects %}disabled{% endif %}>
+                            Add Assignment
+                        </button>
+                        <a href="/" class="btn btn-link w-100 mt-2 text-muted text-decoration-none">Cancel</a>
+                    </form>
+                </div>
+            </div>
         </div>
-        <div class="mb-3">
-            <input class="form-control" class="form-control mx-auto w-auto" name="due_date" placeholder="Due Date (YYYY-MM-DD)" type="date">
-        </div>
-        <div class="mb-3">
-            <input name="subject" placeholder="Subject (e.g. Math)" type="text" class="form-control mb-2">
-        </div>
-        <button class="btn btn-primary" type="submit">Add</button>
-    </form>
+    </div>
+</div>
 {% endblock %}
