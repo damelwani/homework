@@ -8,32 +8,6 @@
     <div class="mb-4">
         <h2>Welcome, {{ username }}!</h2>
     </div>
-<div class="card border-0 shadow-sm mb-4 bg-indigo text-white p-3">
-    <div class="d-flex align-items-center justify-content-between">
-        <div>
-            <h5 class="mb-0 fw-bold"><i class="bi bi-hourglass-split"></i> Focus Timer</h5>
-            <small class="opacity-75" id="timer-label">Ready to work?</small>
-        </div>
-        <div class="text-center">
-            <h2 class="display-6 fw-bold mb-0" id="timer-display">25:00</h2>
-        </div>
-        <div class="d-flex gap-2">
-            <button class="btn btn-light btn-sm fw-bold" id="timer-start" onclick="toggleTimer()">Start</button>
-            <button class="btn btn-outline-light btn-sm" onclick="resetTimer()">Reset</button>
-        </div>
-    </div>
-</div>
-<div class="row g-3 mb-4">
-    <div class="col-6 col-md-4">
-        <div class="card h-100 border-0 shadow-sm {% if overdue_count > 0 %}bg-danger-subtle border-start border-danger border-4{% endif %}">
-            <div class="card-body">
-                <h6 class="card-subtitle mb-1 text-muted small uppercase">Overdue</h6>
-                <h2 class="card-title mb-0 fw-bold {% if overdue_count > 0 %}text-danger{% endif %}">
-                    {{ overdue_count }}
-                </h2>
-            </div>
-        </div>
-    </div>
 
     <div class="col-6 col-md-4">
         <div class="card h-100 border-0 shadow-sm {% if today_count > 0 %}bg-warning-subtle border-start border-warning border-4{% endif %}">
@@ -54,6 +28,27 @@
                     {{ completed_this_week }}
                 </h2>
             </div>
+        </div>
+    </div>
+</div>
+
+<div class="card border-0 shadow-sm mb-4 bg-indigo text-white p-3">
+    <div class="d-flex align-items-center justify-content-between">
+        <div>
+            <h5 class="mb-0 fw-bold"><i class="bi bi-hourglass-split"></i> Focus Timer</h5>
+            <small class="opacity-75" id="timer-label">Set your minutes and go!</small>
+        </div>
+        
+        <div class="text-center d-flex align-items-center justify-content-center">
+            <input type="number" id="timer-input" class="form-control form-control-lg bg-transparent text-white border-0 fw-bold text-center p-0" 
+                   value="25" min="1" max="120" style="font-size: 2.5rem; width: 80px; outline: none; box-shadow: none;">
+            <span class="display-6 fw-bold" id="timer-colon">:</span>
+            <span class="display-6 fw-bold" id="timer-seconds">00</span>
+        </div>
+
+        <div class="d-flex gap-2">
+            <button class="btn btn-light btn-sm fw-bold" id="timer-start" onclick="toggleTimer()">Start</button>
+            <button class="btn btn-outline-light btn-sm" onclick="resetTimer()">Reset</button>
         </div>
     </div>
 </div>
@@ -152,36 +147,47 @@
         </div>
     {% endif %}
         <script>
-    let timeLeft = 25 * 60;
+    let timeLeft = 0;
     let timerInterval = null;
     let isRunning = false;
 
-    const display = document.getElementById('timer-display');
+    const minuteInput = document.getElementById('timer-input');
+    const secondDisplay = document.getElementById('timer-seconds');
     const startBtn = document.getElementById('timer-start');
     const label = document.getElementById('timer-label');
 
     function updateDisplay() {
         const minutes = Math.floor(timeLeft / 60);
         const seconds = timeLeft % 60;
-        display.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        
+        // Update the input value for minutes and the span for seconds
+        minuteInput.value = minutes;
+        secondDisplay.textContent = seconds < 10 ? '0' : '' + seconds;
     }
 
     function toggleTimer() {
         if (isRunning) {
+            // PAUSE
             clearInterval(timerInterval);
-            startBtn.textContent = 'Start';
-            startBtn.classList.replace('btn-warning', 'btn-light');
+            startBtn.textContent = 'Resume';
             label.textContent = 'Paused';
+            minuteInput.disabled = false;
         } else {
+            // START
+            if (timeLeft <= 0) {
+                timeLeft = parseInt(minuteInput.value) * 60;
+            }
+            
             label.textContent = 'Stay Focused!';
             startBtn.textContent = 'Pause';
-            startBtn.classList.replace('btn-light', 'btn-warning');
+            minuteInput.disabled = true; // Lock input while running
+
             timerInterval = setInterval(() => {
                 timeLeft--;
                 updateDisplay();
                 if (timeLeft <= 0) {
                     clearInterval(timerInterval);
-                    alert("Time's up! Take a break.");
+                    alert("Time's up! Great work.");
                     resetTimer();
                 }
             }, 1000);
@@ -191,13 +197,13 @@
 
     function resetTimer() {
         clearInterval(timerInterval);
-        timeLeft = 25 * 60;
         isRunning = false;
+        timeLeft = 0;
+        minuteInput.disabled = false;
+        minuteInput.value = 25; // Or whatever default you want
+        secondDisplay.textContent = "00";
         startBtn.textContent = 'Start';
-        startBtn.classList.remove('btn-warning');
-        startBtn.classList.add('btn-light');
         label.textContent = 'Ready to work?';
-        updateDisplay();
     }
 </script>
 {% endblock %}
