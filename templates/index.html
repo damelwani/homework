@@ -8,6 +8,21 @@
     <div class="mb-4">
         <h2>Welcome, {{ username }}!</h2>
     </div>
+<div class="card border-0 shadow-sm mb-4 bg-indigo text-white p-3">
+    <div class="d-flex align-items-center justify-content-between">
+        <div>
+            <h5 class="mb-0 fw-bold"><i class="bi bi-hourglass-split"></i> Focus Timer</h5>
+            <small class="opacity-75" id="timer-label">Ready to work?</small>
+        </div>
+        <div class="text-center">
+            <h2 class="display-6 fw-bold mb-0" id="timer-display">25:00</h2>
+        </div>
+        <div class="d-flex gap-2">
+            <button class="btn btn-light btn-sm fw-bold" id="timer-start" onclick="toggleTimer()">Start</button>
+            <button class="btn btn-outline-light btn-sm" onclick="resetTimer()">Reset</button>
+        </div>
+    </div>
+</div>
 <div class="row g-3 mb-4">
     <div class="col-6 col-md-4">
         <div class="card h-100 border-0 shadow-sm {% if overdue_count > 0 %}bg-danger-subtle border-start border-danger border-4{% endif %}">
@@ -136,4 +151,53 @@
             <a href="/add" class="btn btn-primary mt-2">Add an Assignment</a>
         </div>
     {% endif %}
+        <script>
+    let timeLeft = 25 * 60;
+    let timerInterval = null;
+    let isRunning = false;
+
+    const display = document.getElementById('timer-display');
+    const startBtn = document.getElementById('timer-start');
+    const label = document.getElementById('timer-label');
+
+    function updateDisplay() {
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        display.textContent = `${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+    }
+
+    function toggleTimer() {
+        if (isRunning) {
+            clearInterval(timerInterval);
+            startBtn.textContent = 'Start';
+            startBtn.classList.replace('btn-warning', 'btn-light');
+            label.textContent = 'Paused';
+        } else {
+            label.textContent = 'Stay Focused!';
+            startBtn.textContent = 'Pause';
+            startBtn.classList.replace('btn-light', 'btn-warning');
+            timerInterval = setInterval(() => {
+                timeLeft--;
+                updateDisplay();
+                if (timeLeft <= 0) {
+                    clearInterval(timerInterval);
+                    alert("Time's up! Take a break.");
+                    resetTimer();
+                }
+            }, 1000);
+        }
+        isRunning = !isRunning;
+    }
+
+    function resetTimer() {
+        clearInterval(timerInterval);
+        timeLeft = 25 * 60;
+        isRunning = false;
+        startBtn.textContent = 'Start';
+        startBtn.classList.remove('btn-warning');
+        startBtn.classList.add('btn-light');
+        label.textContent = 'Ready to work?';
+        updateDisplay();
+    }
+</script>
 {% endblock %}
