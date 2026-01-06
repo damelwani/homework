@@ -19,23 +19,19 @@ body {
 }
 
 /* 2. Navbar Styling */
+/* Force the navbar and its brand/links to follow the theme */
 .navbar {
-    background-color: white !important;
-    padding: 0.8rem 0;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    background-color: var(--bs-body-bg) !important;
 }
 
-.navbar-brand .blue {
-    color: var(--primary-color);
-    font-weight: 700;
-    font-size: 1.25rem;
-}
-
-/* Style for the "by Trivia with Mom" tagline */
+/* Fix the "Trivia with Mom" text to change color in dark mode */
 .navbar-brand small {
-    color: #000000 !important; /* Force Black */
-    opacity: 0.8;
-    text-transform: none;
+    color: var(--bs-secondary-color) !important;
+}
+
+/* Ensure the border at the bottom isn't bright white in dark mode */
+.border-bottom {
+    border-color: var(--bs-border-color) !important;
 }
 
 .nav-link {
