@@ -148,10 +148,12 @@ def schedule():
 
     # Fetch and sort by Day then Time
     user_schedule = db.execute("""
-        SELECT * FROM schedule 
+        SELECT id, subject_name, cycle_day, period, 
+               TO_CHAR(start_time, 'HH24:MI') as start_time 
+        FROM schedule 
         WHERE user_id = ? 
         ORDER BY cycle_day ASC, start_time ASC
-    """, session["user_id"])
+        """, session["user_id"])
     
     return render_template("schedule.html", schedule=user_schedule)
 
