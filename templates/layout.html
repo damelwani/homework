@@ -65,6 +65,7 @@
                 {% if session["user_id"] %}
                     {% if session["role"] == "parent" %}
                         <li class="nav-item"><a class="nav-link" href="/parent">Family Dashboard</a></li>
+                        <li class="nav-item"><A class="nav-link" href="schedule">Family Schedules</a></li>
                         <li class="nav-item"><a class="nav-link" href="/link">Link Student</a></li>
                     {% else %}
                         <li class="nav-item"><a class="nav-link" href="/">My Assignments</a></li>
