@@ -123,3 +123,8 @@ body {
     border: none;
     font-weight: 500;
 }
+
+.bg-indigo {
+    background-color: #4f46e5 !important;
+    color: white !important;
+}
