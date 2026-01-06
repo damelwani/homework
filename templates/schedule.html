@@ -1,80 +1,67 @@
 {% extends "layout.html" %}
 
-{% block title %}Manage Schedule{% endblock %}
-
 {% block main %}
-<div class="container py-4">
-    <div class="row">
-        <div class="col-lg-4 mb-4">
-            <div class="card shadow-sm border-0">
-                <div class="card-body">
-                    <h5 class="fw-bold mb-3">Add Class Instance</h5>
-                    <form action="/schedule" method="post">
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold text-muted uppercase">Subject Name</label>
-                            <input name="subject" class="form-control" placeholder="e.g. Physics" required>
-                        </div>
-                        <div class="row mb-3">
-                            <div class="col-6">
-                                <label class="form-label small fw-bold text-muted">Cycle Day</label>
-                                <input name="cycle_day" class="form-control text-uppercase" placeholder="A" required>
-                            </div>
-                            <div class="col-6">
-                                <label class="form-label small fw-bold text-muted">Period</label>
-                                <input name="period" class="form-control" placeholder="3">
-                            </div>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label small fw-bold text-muted">Start Time</label>
-                            <input type="time" name="start_time" class="form-control">
-                        </div>
-                        <button type="submit" class="btn btn-primary w-100 fw-bold">Save to Day</button>
-                    </form>
+<div class="mb-4 d-flex justify-content-between align-items-center">
+    <div>
+        <h2 class="fw-bold"><i class="bi bi-calendar3 me-2 text-indigo"></i>Class Schedule</h2>
+        <p class="text-muted">{% if session['role'] == 'parent' %}Viewing linked student timetables.{% else %}Your personal class timeline.{% endif %}</p>
+    </div>
+    {% if session['role'] == 'student' %}
+        <button class="btn btn-primary shadow-sm" data-bs-toggle="modal" data-bs-target="#addClassModal">
+            <i class="bi bi-plus-lg"></i> Add Class
+        </button>
+    {% endif %}
+</div>
+
+<div class="row g-4">
+    {% if session['role'] == 'parent' %}
+        {# --- PARENT VIEW: Grouped by Child --- #}
+        {% for student_name, classes in grouped_classes.items() %}
+            <div class="col-12 mb-4">
+                <h4 class="fw-bold border-bottom pb-2"><i class="bi bi-person-badge me-2"></i>{{ student_name }}</h4>
+                <div class="row g-3">
+                    {% for item in classes %}
+                        {{ render_class_card(item, read_only=True) }}
+                    {% endfor %}
                 </div>
             </div>
-            
-            <form action="/clear_schedule" method="post" class="mt-3" onsubmit="return confirm('Wipe schedule for the new term?');">
-                <button type="submit" class="btn btn-link text-danger btn-sm w-100">Clear All and Start Fresh</button>
-            </form>
-        </div>
+        {% endfor %}
+    {% else %}
+        {# --- STUDENT VIEW: Single list of classes --- #}
+        {% if schedule %}
+            {% for item in schedule %}
+                {{ render_class_card(item, read_only=False) }}
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-5">
+                <p class="text-muted">No classes added yet. Click "+ Add Class" to begin.</p>
+            </div>
+        {% endif %}
+    {% endif %}
+</div>
 
-        <div class="col-lg-8">
-            <h4 class="fw-bold mb-4">Class Rotation</h4>
-            
-            {% if not schedule %}
-                <div class="text-center py-5 bg-white rounded shadow-sm">
-                    <p class="text-muted">No classes added yet. Start by adding an A or B day class.</p>
-                </div>
-            {% else %}
-                {% for day, classes in schedule|groupby('cycle_day') %}
-                <div class="card shadow-sm border-0 mb-4 overflow-hidden">
-                    <div class="card-header bg-dark text-white fw-bold py-3">
-                        DAY {{ day }}
-                    </div>
-                    <div class="list-group list-group-flush">
-                        {% for item in classes %}
-                        <div class="list-group-item d-flex justify-content-between align-items-center py-3">
-                            <div>
-                                <span class="badge bg-light text-primary border me-3" style="min-width: 65px;">
-                                    {{ item.start_time[:5] if item.start_time else '--:--' }}
-                                </span>
-                                <span class="fw-bold fs-5">{{ item.subject_name }}</span>
-                                {% if item.period %}
-                                    <span class="ms-2 text-muted small">| Period {{ item.period }}</span>
-                                {% endif %}
-                            </div>
-                            <form action="/delete_schedule/{{ item.id }}" method="post">
-                                <button type="submit" class="btn btn-sm btn-outline-danger border-0">
-                                    <i class="bi bi-x-circle"></i> Remove
-                                </button>
-                            </form>
-                        </div>
-                        {% endfor %}
-                    </div>
-                </div>
-                {% endfor %}
-            {% endif %}
+{# --- REUSABLE CLASS CARD MACRO --- #}
+{% macro render_class_card(item, read_only) %}
+<div class="col-md-6 col-lg-4">
+    <div class="card border-0 shadow-sm h-100 bg-body-tertiary">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-start mb-2">
+                <span class="badge bg-indigo-subtle text-indigo px-2 py-1">Day {{ item.cycle_day }}</span>
+                <span class="text-muted small fw-bold">Period {{ item.period }}</span>
+            </div>
+            <h5 class="card-title fw-bold mb-1">{{ item.subject_name }}</h5>
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <div class="text-muted small"><i class="bi bi-clock me-1"></i>{{ item.start_time }}</div>
+                {% if not read_only %}
+                    <form action="/delete_class" method="post" onsubmit="return confirm('Remove class?');">
+                        <input type="hidden" name="id" value="{{ item.id }}">
+                        <button type="submit" class="btn btn-link btn-sm text-danger p-0"><i class="bi bi-trash"></i></button>
+                    </form>
+                {% endif %}
+            </div>
         </div>
     </div>
 </div>
+{% endmacro %}
+
 {% endblock %}
