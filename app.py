@@ -224,6 +224,9 @@ def index():
     # 5. Define timing variables for color-coding
     today = date.today()
     today_plus_2 = today + timedelta(days=2)
+    overdue_count = sum(1 for t in assignments if t['due_date'] < today and t['status'] != 'Completed')
+    today_count = sum(1 for t in assignments if t['due_date'] == today and t['status'] != 'Completed')
+    completed_this_week = sum(1 for t in assignments if t['status'] == 'Completed')
     
     # 6. Return the template with ALL required variables
     return render_template(
@@ -234,6 +237,9 @@ def index():
         today_plus_2=today_plus_2,
         current_sort=sort_by,
         google_connected=google_connected
+        overdue_count=overdue_count,
+        today_count=today_count,
+        completed_this_week=completed_this_week
     )
 
 @app.route("/login", methods=["GET", "POST"])
