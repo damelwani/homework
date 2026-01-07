@@ -1,0 +1,36 @@
+{% extends "layout.html" %}
+
+{% block title %}Server Error{% endblock %}
+
+{% block main %}
+<div class="container text-center py-5">
+    <div class="row justify-content-center">
+        <div class="col-md-6">
+            <div class="mb-4">
+                <i class="bi bi-exclamation-triangle-fill text-warning display-1"></i>
+            </div>
+            
+            <h1 class="fw-bold">500</h1>
+            <h3 class="mb-3">Something went wrong.</h3>
+            
+            <p class="text-muted mb-4">
+                Our servers are having a bit of trouble right now. 
+                Don't worry, your data is safe. We've been notified and are looking into it.
+            </p>
+
+            <div class="d-grid gap-2 d-sm-flex justify-content-sm-center">
+                <a href="/" class="btn btn-primary btn-lg px-4 gap-3 shadow-sm">
+                    <i class="bi bi-house-door me-2"></i>Return Home
+                </a>
+                <button onclick="location.reload()" class="btn btn-outline-secondary btn-lg px-4">
+                    <i class="bi bi-arrow-clockwise me-2"></i>Try Again
+                </button>
+            </div>
+            
+            <div class="mt-5">
+                <p class="small text-muted">Error Code: <span class="badge bg-light text-dark border">INTERNAL_SERVER_ERROR</span></p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
