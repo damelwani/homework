@@ -528,3 +528,7 @@ def sync_classroom():
         return redirect("/")
 
     return redirect("/")
+
+@app.errorhandler(500)
+def internal_error(error):
+    return render_template('500.html'), 500
