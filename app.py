@@ -11,6 +11,7 @@ from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
 import smtplib
+import pytz
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
@@ -251,7 +252,8 @@ def index():
         assignments.append(task)
 
     # 5. Define timing variables for color-coding
-    today = date.today()
+    user_tz = pytz.timezone('US/Eastern') 
+    today = datetime.now(user_tz).date()
     today_plus_2 = today + timedelta(days=2)
     overdue_count = sum(1 for t in assignments if t['due_date'] < today and t['status'] != 'Completed')
     today_count = sum(1 for t in assignments if t['due_date'] == today and t['status'] != 'Completed')
@@ -347,7 +349,8 @@ def logout():
 @app.route("/parent")
 @login_required
 def parent_view():
-    today=date.today()
+    user_tz = pytz.timezone('US/Eastern') 
+    today = datetime.now(user_tz).date()
     today_plus_2 = today + timedelta(days=2)
     # Get the sorting preference (default to 'child')
     sort_by = request.args.get("sort", "child")
