@@ -229,7 +229,21 @@ def index():
         username = "User"
     else:
         username = user_row[0]["username"]
-
+    current_time = (datetime.utcnow() - timedelta(hours=5)).time()
+    
+   
+    schedule_rows = db.execute("SELECT * FROM schedule WHERE user_id = ? ORDER BY start_time ASC", session["user_id"])
+    
+    current_class = None
+    next_class = None
+    
+    for i, row in enumerate(schedule_rows):
+        # Since start_time is a TIME object, we can compare directly
+        if row["start_time"] <= current_time:
+            current_class = row
+        elif row["start_time"] > current_time:
+            next_class = row
+            break
     # 2. Get the sorting preference from the URL (?sort=...)
     sort_by = request.args.get("sort", "date")
     valid_sorts = {"date": "due_date", "subject": "subject", "title": "title"}
@@ -270,7 +284,9 @@ def index():
         google_connected=google_connected,
         overdue_count=overdue_count,
         today_count=today_count,
-        completed_this_week=completed_this_week
+        completed_this_week=completed_this_week,
+        current_class=current_class, 
+        next_class=next_class
     )
 
 @app.route("/login", methods=["GET", "POST"])
