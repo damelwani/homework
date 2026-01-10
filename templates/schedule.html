@@ -6,28 +6,46 @@
     <table class="table table-hover align-middle mb-0">
         <thead class="bg-body-secondary">
             <tr class="text-uppercase small fw-bold">
-                <th style="width: 20%">Period</th>
-                <th style="width: 50%">Subject</th>
-                <th style="width: 20%">Start Time</th>
-                {% if not read_only %}<th style="width: 10%" class="text-end">Actions</th>{% endif %}
+                <th style="width: 15%">Period</th>
+                <th style="width: 35%">Subject</th>
+                <th style="width: 30%">Time</th>
+                {% if not read_only %}<th style="width: 20%" class="text-end">Actions</th>{% endif %}
             </tr>
         </thead>
         <tbody>
             {% for row in rows | sort(attribute='period') %}
             <tr>
-                <td class="fw-bold">Period {{ row.period }}</td>
-                <td class="fw-bold text-primary">{{ row.subject_name }}</td>
-                <td class="text-muted">
-                    <i class="bi bi-clock me-1"></i>{{ row.start_time }}
-                </td>
-                {% if not read_only %}
-                <td class="text-end">
-                    <form action="/delete_schedule/{{ row.id }}" method="post" class="d-inline" onsubmit="return confirm('Delete this class?');">
-                        <button type="submit" class="btn btn-link text-danger p-0">
-                            <i class="bi bi-trash"></i>
-                        </button>
-                    </form>
-                </td>
+                <div class="modal fade" id="editModal{{ row.id }}" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content border-0 shadow">
+            <div class="modal-header">
+                <h5 class="modal-title fw-bold">Edit {{ row.subject_name }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="/edit_schedule/{{ row.id }}" method="POST">
+                <div class="modal-body text-start">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold">Subject</label>
+                        <input type="text" name="subject" class="form-control" value="{{ row.subject_name }}" required>
+                    </div>
+                    <div class="row">
+                        <div class="col-6 mb-3">
+                            <label class="form-label small fw-bold">Start Time</label>
+                            <input type="time" name="start_time" class="form-control" value="{{ row.start_time }}" required>
+                        </div>
+                        <div class="col-6 mb-3">
+                            <label class="form-label small fw-bold">End Time</label>
+                            <input type="time" name="end_time" class="form-control" value="{{ row.end_time }}" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-0">
+                    <button type="submit" class="btn btn-primary w-100">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
                 {% endif %}
             </tr>
             {% endfor %}
