@@ -551,3 +551,22 @@ def sync_classroom():
 @app.errorhandler(500)
 def internal_error(error):
     return render_template('500.html'), 500
+
+@app.errorhandler(404)
+def internal_error(error):
+    return render_template('404.html'), 404
+
+@app.route("/edit_schedule/<int:id>", methods=["POST"])
+@login_required
+def edit_schedule(id):
+    subject = request.form.get("subject")
+    start = request.form.get("start_time")
+    end = request.form.get("end_time")
+    
+    db.execute("""
+        UPDATE schedule 
+        SET subject_name = ?, start_time = ?, end_time = ? 
+        WHERE id = ? AND user_id = ?
+    """, subject, start, end, id, session["user_id"])
+    
+    return redirect("/schedule")
