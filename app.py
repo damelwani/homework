@@ -573,14 +573,14 @@ def api_assignments():
     if user_role == "parent":
         # Get assignments for all students linked to this parent
         rows = db.execute("""
-            SELECT title, due_date, description 
+            SELECT title, due_date 
             FROM assignments 
             WHERE user_id IN (SELECT student_id FROM links WHERE parent_id = ?)
         """, user_id)
     else:
         # Get assignments for the logged-in student
         rows = db.execute("""
-            SELECT title, due_date, description 
+            SELECT title, due_date 
             FROM assignments 
             WHERE user_id = ?
         """, user_id)
