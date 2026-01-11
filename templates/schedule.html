@@ -1,6 +1,7 @@
 {% extends "layout.html" %}
 
-{# --- THE TABLE MACRO --- #}
+{# --- 1. THE TABLE MACRO --- #}
+{# This handles the actual layout of the schedule rows #}
 {% macro render_table(rows, read_only) %}
 <div class="table-responsive rounded-3 mb-4 border shadow-sm">
     <table class="table table-hover align-middle mb-0">
@@ -23,6 +24,7 @@
                     </div>
                 </td>
                 <td class="small text-body">
+                    <i class="bi bi-clock me-1 text-primary-emphasis"></i>
                     {% if row.start_time and row.end_time %}
                         {{ row.start_time.strftime('%I:%M %p') }} – {{ row.end_time.strftime('%I:%M %p') }}
                     {% else %}
@@ -55,34 +57,70 @@
     <div class="d-flex justify-content-between align-items-center mb-4">
         <div>
             <h2 class="fw-bold mb-0">Class Schedule</h2>
+            <p class="text-body-secondary small">Viewing as {{ session['role'] | capitalize }}</p>
         </div>
         {% if session['role'] == 'student' %}
-            <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addClass">
+            <button class="btn btn-primary rounded-pill px-4 shadow-sm" data-bs-toggle="modal" data-bs-target="#addClass">
                 <i class="bi bi-plus-lg me-1"></i> Add Class
             </button>
         {% endif %}
     </div>
 
-    {% if schedule %}
-        {% for day, day_rows in schedule | groupby('cycle_day') %}
-            <div class="mb-4">
-                <h5 class="fw-bold mb-3">
-                    <span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle px-3">Day {{ day }}</span>
-                </h5>
-                {{ render_table(day_rows, read_only=False) }}
+    {# --- PARENT VIEW --- #}
+    {% if session['role'] == 'parent' %}
+        {% if grouped_classes %}
+            {% for student_name, student_schedule in grouped_classes.items() %}
+                <div class="mb-5">
+                    <h4 class="fw-bold text-primary mb-3">
+                        <i class="bi bi-person-badge me-2"></i>{{ student_name }}'s Schedule
+                    </h4>
+                    
+                    {% if student_schedule %}
+                        {% for day, day_rows in student_schedule | groupby('cycle_day') %}
+                            <div class="mb-4">
+                                <h5 class="fw-bold mb-3">
+                                    <span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle px-3">Day {{ day }}</span>
+                                </h5>
+                                {{ render_table(day_rows, read_only=True) }}
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-body-secondary italic">No classes recorded for this student.</p>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-5 border rounded-4 bg-body-tertiary">
+                <i class="bi bi-people text-body-secondary display-3"></i>
+                <h4 class="mt-3">No Linked Students Found</h4>
+                <p class="text-body-secondary">Please link a student account to view schedules.</p>
             </div>
-        {% endfor %}
+        {% endif %}
+
+    {# --- STUDENT VIEW --- #}
     {% else %}
-        <div class="text-center py-5 border rounded-4 bg-body-tertiary">
-            <i class="bi bi-calendar-x text-body-secondary display-3"></i>
-            <h4 class="mt-3">Empty Schedule</h4>
-            <p class="text-body-secondary">Start by adding your first class.</p>
-        </div>
+        {% if schedule %}
+            {% for day, day_rows in schedule | groupby('cycle_day') %}
+                <div class="mb-4">
+                    <h5 class="fw-bold mb-3">
+                        <span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle px-3">Day {{ day }}</span>
+                    </h5>
+                    {{ render_table(day_rows, read_only=False) }}
+                </div>
+            {% endfor %}
+        {% else %}
+            <div class="text-center py-5 border rounded-4 bg-body-tertiary">
+                <i class="bi bi-calendar-x text-body-secondary display-3"></i>
+                <h4 class="mt-3">Empty Schedule</h4>
+                <p class="text-body-secondary">Start by adding your first class.</p>
+            </div>
+        {% endif %}
     {% endif %}
 </div>
 
-{# --- MODALS (Placed outside the table) --- #}
-{% if schedule %}
+{# --- EDIT MODALS --- #}
+{# Only render these if the user is a student and has classes #}
+{% if session['role'] == 'student' and schedule %}
     {% for row in schedule %}
     <div class="modal fade" id="editModal{{ row.id }}" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered">
@@ -102,19 +140,19 @@
                     </div>
                     <div class="row g-2">
                         <div class="col-6">
-                            <label class="form-label small fw-bold text-body-secondary">Start</label>
+                            <label class="form-label small fw-bold text-body-secondary">Start Time</label>
                             <input type="time" name="start_time" class="form-control" 
                                    value="{{ row.start_time.strftime('%H:%M') if row.start_time else '' }}" required>
                         </div>
                         <div class="col-6">
-                            <label class="form-label small fw-bold text-body-secondary">End</label>
+                            <label class="form-label small fw-bold text-body-secondary">End Time</label>
                             <input type="time" name="end_time" class="form-control" 
                                    value="{{ row.end_time.strftime('%H:%M') if row.end_time else '' }}" required>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer border-0">
-                    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Save Changes</button>
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold rounded-3">Save Changes</button>
                 </div>
             </form>
         </div>
@@ -123,6 +161,7 @@
 {% endif %}
 
 {# --- ADD CLASS MODAL --- #}
+{% if session['role'] == 'student' %}
 <div class="modal fade" id="addClass" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <form action="/schedule" method="POST" class="modal-content shadow border-0">
@@ -135,7 +174,6 @@
                     <label class="form-label small fw-bold text-body-secondary">Subject Name</label>
                     <input type="text" name="subject" class="form-control" placeholder="e.g. Computer Science" required>
                 </div>
-
                 <div class="row g-2 mb-3">
                     <div class="col-6">
                         <label class="form-label small fw-bold text-body-secondary">Cycle Day</label>
@@ -146,12 +184,10 @@
                         <input type="number" name="period" class="form-control" placeholder="1" required>
                     </div>
                 </div>
-
                 <div class="mb-3">
                     <label class="form-label small fw-bold text-body-secondary">Room Number</label>
                     <input type="text" name="room_number" class="form-control" placeholder="Lab 204">
                 </div>
-
                 <div class="row g-2">
                     <div class="col-6">
                         <label class="form-label small fw-bold text-body-secondary">Start Time</label>
@@ -169,4 +205,6 @@
         </form>
     </div>
 </div>
+{% endif %}
+
 {% endblock %}
