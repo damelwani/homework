@@ -1,7 +1,7 @@
 import os
 
 from cs50 import SQL
-from flask import Flask, flash, redirect, render_template, request, session, url_for
+from flask import Flask, flash, redirect, render_template, request, session, url_for, jsonify
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
 from helpers import login_required
@@ -560,6 +560,31 @@ def sync_classroom():
         return redirect("/")
 
     return redirect("/")
+
+@app.route("/api/assignments")
+@login_required
+def api_assignments():
+    user_id = session["user_id"]
+    
+    # If a parent is logged in, they should see their children's assignments
+    if session.get("role") == "parent":
+        # Get all assignment for all linked students
+        rows = db.execute("""
+            SELECT title, due_date as start, description 
+            FROM assignments 
+            WHERE student_id IN (SELECT student_id FROM links WHERE parent_id = ?)
+        """, user_id)
+    else:
+        # Student sees only their own
+        rows = db.execute("SELECT title as title, due_date as start FROM assignments WHERE student_id = ?", user_id)
+    
+    # FullCalendar expects a list of dictionaries with 'title' and 'start'
+    return jsonify(rows)
+
+@app.route("/calendar")
+@login_required
+def calendar_view():
+    return render_template("calendar.html")
 
 @app.errorhandler(500)
 def internal_error(error):
