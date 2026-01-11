@@ -231,7 +231,6 @@ def index():
         username = user_row[0]["username"]
     current_time = (datetime.utcnow() - timedelta(hours=5)).time()
     
-   
     
     # 2. Get the sorting preference from the URL (?sort=...)
     sort_by = request.args.get("sort", "date")
@@ -273,9 +272,7 @@ def index():
         google_connected=google_connected,
         overdue_count=overdue_count,
         today_count=today_count,
-        completed_this_week=completed_this_week,
-        current_class=current_class, 
-        next_class=next_class
+        completed_this_week=completed_this_week
     )
 
 @app.route("/login", methods=["GET", "POST"])
