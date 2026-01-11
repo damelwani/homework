@@ -1,7 +1,8 @@
 import os
 
+import uuid
 from cs50 import SQL
-from flask import Flask, flash, redirect, render_template, request, session, url_for
+from flask import Flask, flash, redirect, render_template, request, session, url_for, Response
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
 from helpers import login_required
@@ -568,4 +569,57 @@ def internal_error(error):
 @app.errorhandler(404)
 def internal_error(error):
     return render_template('404.html'), 404
+
+@app.route("/export_assignments/<int:user_id>")
+@login_required
+def export_assignments(user_id):
+    # Only allow the user or their linked parent to export
+    if session["role"] == "parent":
+        # Check if this student is actually linked to the parent
+        link = db.execute("SELECT 1 FROM links WHERE parent_id = ? AND student_id = ?", 
+                         session["user_id"], user_id)
+        if not link:
+            return redirect("/schedule")
+    elif session["user_id"] != user_id:
+        return redirect("/schedule")
+
+    # Fetch assignments (adjust table/column names to match your DB)
+    assignments = db.execute("""
+        SELECT title, due_date, description 
+        FROM assignments 
+        WHERE student_id = ?
+    """, user_id)
+    
+    calendar_lines = [
+        "BEGIN:VCALENDAR",
+        "VERSION:2.0",
+        "PRODID:-//School Hub//Assignments//EN",
+        "X-WR-CALNAME:School Assignments"
+    ]
+
+    for task in assignments:
+        # Format the date from YYYY-MM-DD to YYYYMMDD
+        # Note: All-day events in ICS use VALUE=DATE
+        due_date_clean = task['due_date'].replace("-", "")
+        uid = str(uuid.uuid4())
+        
+        calendar_lines.extend([
+            "BEGIN:VEVENT",
+            f"UID:{uid}",
+            f"SUMMARY:{task['title']}",
+            f"DESCRIPTION:{task['description'] if task['description'] else ''}",
+            f"DTSTART;VALUE=DATE:{due_date_clean}",
+            f"DTEND;VALUE=DATE:{due_date_clean}",
+            "STATUS:CONFIRMED",
+            "END:VEVENT"
+        ])
+
+    calendar_lines.append("END:VCALENDAR")
+    
+    ics_content = "\r\n".join(calendar_lines)
+    return Response(
+        ics_content,
+        mimetype="text/calendar",
+        headers={"Content-disposition": "attachment; filename=assignments.ics"}
+    )
 
