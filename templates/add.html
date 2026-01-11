@@ -31,7 +31,13 @@
                                 </div>
                             {% endif %}
                         </div>
-
+                        <label class="form-label fw-bold">Type</label>
+                                <select name="type" class="form-select form-select-lg" required>
+                                    <option disabled selected value="">Choose type...</option>
+                                        <option value="homework">Homework</option>
+                                        <option value="homework">Exam</option>
+                                </select>
+                            {% else %}
                         <div class="mb-4">
                             <label class="form-label fw-bold">Due Date</label>
                             <input type="date" name="due_date" class="form-control form-control-lg" required>
