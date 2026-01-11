@@ -2,8 +2,9 @@
 
 {% block main %}
 <div class="container-fluid py-4 px-md-5">
-    <div class="card shadow-sm border-0 rounded-4">
-        <div class="card-body p-0"> <div id="calendar"></div>
+    <div class="card shadow-sm border-0 rounded-4 overflow-hidden bg-body">
+        <div class="card-body p-0"> 
+            <div id="calendar"></div>
         </div>
     </div>
 </div>
@@ -11,49 +12,76 @@
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function() {
+  document.addEventListener('DOMContentLoaded', function() { // Fixed "ddocument" typo
     var calendarEl = document.getElementById('calendar');
     var calendar = new FullCalendar.Calendar(calendarEl, {
-      initialView: 'dayGridMonth',
-      height: '80vh', // Sets height based on the screen size
-      aspectRatio: 2, // Makes cells wider than they are tall
-      headerToolbar: {
-        left: 'prev,next today',
-        center: 'title',
-        right: 'dayGridMonth,timeGridWeek,listWeek'
-      },
-      events: '/api/assignments', // Flask endpoint
-      
-      // Styling
-      eventColor: '#0d6efd',
-      eventTextColor: '#ffffff',
-      displayEventTime: false, // Hides "12a" since these are all-day events
-      
-      eventClick: function(info) {
-        alert('Assignment: ' + info.event.title);
-      }
+        initialView: 'dayGridMonth',
+        height: 'auto',
+        selectable: true,
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,listWeek'
+        },
+        events: '/api/assignments', 
+        
+        // Ensure events are styled visibly
+        eventColor: '#0d6efd',
+        eventTextColor: '#ffffff',
+
+        loading: function(isLoading) {
+            if (!isLoading) {
+                console.log("Calendar finished loading events");
+            }
+        },
+        eventDataTransform: function(eventData) {
+            eventData.allDay = true;
+            return eventData;
+        }
     });
     calendar.render();
   });
 </script>
 
 <style>
-    /* Custom CSS to polish the look */
+    /* 1. Remove hardcoded white background so it follows Dark Mode */
     #calendar {
         padding: 20px;
-        background: white;
-        border-radius: 15px;
+        background: transparent; 
+        color: inherit;
     }
-    /* Make the calendar header look modern */
+
+    /* 2. Fix Header Title to adapt to dark/light text */
     .fc-toolbar-title {
         font-size: 1.5rem !important;
         font-weight: 700;
-        color: #0d6efd;
+        /* Using Bootstrap variable for primary color */
+        color: var(--bs-primary) !important; 
     }
+
+    /* 3. Style Buttons */
     .fc-button-primary {
         background-color: #0d6efd !important;
         border: none !important;
+        border-radius: 8px !important;
+        padding: 8px 16px !important;
         text-transform: capitalize;
+    }
+
+    /* 4. Fix Grid Lines for Dark Mode */
+    .fc td, .fc th {
+        border-color: var(--bs-border-color) !important;
+    }
+
+    /* 5. Make the "Today" cell highlight better in dark mode */
+    .fc-day-today {
+        background-color: var(--bs-primary-bg-subtle) !important;
+    }
+
+    /* 6. Fix text color for days in dark mode */
+    .fc-col-header-cell-cushion, .fc-daygrid-day-number {
+        color: var(--bs-body-color);
+        text-decoration: none;
     }
 </style>
 {% endblock %}
