@@ -77,6 +77,14 @@ def format_date(value):
 
 app.jinja_env.filters['pretty_date'] = format_date
 
+@app.route("/landing")
+def landing():
+    # If they are already logged in, send them away from the marketing page
+    if session.get("user_id"):
+        return redirect("/")
+    
+    return render_template("landing.html")
+
 @app.route("/google_login")
 @login_required
 def google_login():
