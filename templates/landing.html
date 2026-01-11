@@ -1,0 +1,63 @@
+{% extends "layout.html" %}
+
+{% block title %}
+    TrackHW | Student-Parent Assignment Sync
+{% endblock %}
+
+{% block main %}
+<div class="container-fluid py-5 bg-dark text-white shadow-sm" style="background: linear-gradient(145deg, #1a1a1a 0%, #2c3e50 100%);">
+    <div class="container py-5 text-center">
+        <h1 class="display-3 fw-bold mb-3 mt-4">Homework tracking, <span class="text-primary">simplified.</span></h1>
+        <p class="lead mb-5 text-secondary mx-auto" style="max-width: 700px;">
+            The all-in-one dashboard for students to manage assignments and parents to stay in the loop. Automated reminders for exams and homework—sent straight to your inbox.
+        </p>
+        <div class="d-grid gap-3 d-sm-flex justify-content-sm-center mb-5">
+            <a href="/register" class="btn btn-primary btn-lg px-5 py-3 fw-bold shadow">Get Started for Free</a>
+            <a href="/login" class="btn btn-outline-light btn-lg px-5 py-3">Login to Dashboard</a>
+        </div>
+    </div>
+</div>
+
+<div class="container py-5 my-5">
+    <div class="row g-5">
+        <div class="col-md-4 text-center">
+            <div class="feature-icon bg-primary bg-gradient text-white mb-3 mx-auto d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 12px;">
+                <i class="bi bi-calendar-check-fill fs-3 text-white">📅</i>
+            </div>
+            <h3 class="fw-bold">Centralized Calendar</h3>
+            <p class="text-muted">One place for all your subjects. View assignments by date, subject, or title with a single click.</p>
+        </div>
+        
+        <div class="col-md-4 text-center">
+            <div class="feature-icon bg-success bg-gradient text-white mb-3 mx-auto d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 12px;">
+                <i class="bi bi-bell-fill fs-3 text-white">🔔</i>
+            </div>
+            <h3 class="fw-bold">Smart Reminders</h3>
+            <p class="text-muted">Custom email alerts sent from <strong>trackhw.com</strong>. 1 day before homework and 3 days before major exams.</p>
+        </div>
+        
+        <div class="col-md-4 text-center">
+            <div class="feature-icon bg-info bg-gradient text-white mb-3 mx-auto d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; border-radius: 12px;">
+                <i class="bi bi-people-fill fs-3 text-white">🤝</i>
+            </div>
+            <h3 class="fw-bold">Parent Portal</h3>
+            <p class="text-muted">Parents can link to student accounts to see upcoming deadlines without nag-mailing or texting.</p>
+        </div>
+    </div>
+</div>
+
+<div class="container mb-5">
+    <div class="p-5 text-center bg-light border rounded-5">
+        <h2 class="fw-bold">Ready to boost your productivity?</h2>
+        <p class="col-lg-8 mx-auto fs-5 text-muted">
+            Join other students using TrackHW to stay organized and stress-free.
+        </p>
+        <a href="/register" class="btn btn-primary btn-lg px-4 mt-3">Create Your Account</a>
+    </div>
+</div>
+
+<footer class="container py-4 border-top text-center text-muted">
+    <p>&copy; 2026 TrackHW. Built for students, by students. <br>
+    <small>Contact: <a href="mailto:info@trackhw.com" class="text-decoration-none">info@trackhw.com</a></small></p>
+</footer>
+{% endblock %}
