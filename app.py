@@ -132,60 +132,67 @@ def register():
 
 
 @app.route("/schedule", methods=["GET", "POST"])
+@login_required
 def schedule():
-    if not session.get("user_id"):
-        return redirect("/login")
-
-    user_id = session["user_id"]
-    role = session.get("role")
-    today = date.today() # Define this for the template logic
-
     if request.method == "POST":
-        if role == "parent":
-            return "Parents cannot edit schedules", 403
+        # Only students can add classes
+        if session.get("role") != "student":
+            return redirect("/")
             
         subject = request.form.get("subject")
-        cycle_day = request.form.get("cycle_day").upper()
         period = request.form.get("period")
+        cycle_day = request.form.get("cycle_day")
         start_time = request.form.get("start_time")
+        end_time = request.form.get("end_time")
+        room_number = request.form.get("room_number")
 
         db.execute("""
-            INSERT INTO schedule (user_id, subject_name, cycle_day, period, start_time) 
-            VALUES (?, ?, ?, ?, ?)
-        """, user_id, subject, cycle_day, period, start_time)
+            INSERT INTO schedule (user_id, subject_name, period, cycle_day, start_time, end_time, room_number)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        """, session["user_id"], subject, period, cycle_day, start_time, end_time, room_number)
         return redirect("/schedule")
 
-    if role == "parent":
-        family_classes = db.execute("""
-            SELECT s.subject_name, s.cycle_day, s.period, 
-                   TO_CHAR(s.start_time, 'HH24:MI') as start_time,
-                   u.username as student_name
-            FROM schedule s
-            JOIN relationships l ON s.user_id = l.child_id 
-            JOIN users u ON s.user_id = u.id
-            WHERE l.parent_id = ?
-            ORDER BY u.username, s.cycle_day ASC, s.start_time ASC
-        """, user_id)
-        
+    # --- GET REQUEST ---
+    if session.get("role") == "parent":
+        # Get linked students
+        students = db.execute("""
+            SELECT id, username FROM users 
+            WHERE id IN (SELECT student_id FROM links WHERE parent_id = ?)
+        """, session["user_id"])
+
         grouped_classes = {}
-        for row in family_classes:
-            name = row['student_name']
-            if name not in grouped_classes:
-                grouped_classes[name] = []
-            grouped_classes[name].append(row)
+        for s in students:
+            rows = db.execute("SELECT * FROM schedule WHERE user_id = ? ORDER BY cycle_day, period", s["id"])
+            for r in rows:
+                r["start_time"] = parse_time(r["start_time"])
+                r["end_time"] = parse_time(r["end_time"])
+            grouped_classes[s["username"]] = rows
             
-        return render_template("schedule.html", grouped_classes=grouped_classes, today=today)
+        return render_template("schedule.html", grouped_classes=grouped_classes)
 
     else:
-        user_schedule = db.execute("""
-            SELECT id, subject_name, cycle_day, period, 
-                   TO_CHAR(start_time, 'HH24:MI') as start_time 
-            FROM schedule 
-            WHERE user_id = ? 
-            ORDER BY cycle_day ASC, start_time ASC
-        """, user_id)
-        
-        return render_template("schedule.html", schedule=user_schedule, today=today)
+        # Student View
+        rows = db.execute("SELECT * FROM schedule WHERE user_id = ? ORDER BY cycle_day, period", session["user_id"])
+        for r in rows:
+            r["start_time"] = parse_time(r["start_time"])
+            r["end_time"] = parse_time(r["end_time"])
+        return render_template("schedule.html", schedule=rows)
+
+@app.route("/edit_schedule/<int:id>", methods=["POST"])
+@login_required
+def edit_schedule(id):
+    # Security: Ensure user owns the record
+    subject = request.form.get("subject")
+    room = request.form.get("room_number")
+    start = request.form.get("start_time")
+    end = request.form.get("end_time")
+    
+    db.execute("""
+        UPDATE schedule 
+        SET subject_name = ?, room_number = ?, start_time = ?, end_time = ? 
+        WHERE id = ? AND user_id = ?
+    """, subject, room, start, end, id, session["user_id"])
+    return redirect("/schedule")
 
 @app.route("/delete_schedule/<int:id>", methods=["POST"])
 def delete_schedule(id):
@@ -542,17 +549,3 @@ def internal_error(error):
 def internal_error(error):
     return render_template('404.html'), 404
 
-@app.route("/edit_schedule/<int:id>", methods=["POST"])
-@login_required
-def edit_schedule(id):
-    subject = request.form.get("subject")
-    start = request.form.get("start_time")
-    end = request.form.get("end_time")
-    
-    db.execute("""
-        UPDATE schedule 
-        SET subject_name = ?, start_time = ?, end_time = ? 
-        WHERE id = ? AND user_id = ?
-    """, subject, start, end, id, session["user_id"])
-    
-    return redirect("/schedule")
