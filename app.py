@@ -564,24 +564,21 @@ def sync_classroom():
 @app.route("/api/assignments")
 @login_required
 def api_assignments():
-    user_id = session["user_id"]
-    
+    # Use 'AS start' so FullCalendar can read the due_date column
     if session.get("role") == "parent":
-        # Get assignments for all linked students
         rows = db.execute("""
             SELECT title, due_date AS start, description 
             FROM assignments 
             WHERE student_id IN (SELECT student_id FROM links WHERE parent_id = ?)
-        """, user_id)
+        """, session["user_id"])
     else:
-        # Student sees their own assignments
         rows = db.execute("""
             SELECT title, due_date AS start 
             FROM assignments 
             WHERE student_id = ?
-        """, user_id)
+        """, session["user_id"])
     
-    # Optional: Add a 'allDay' property if they aren't showing up
+    # Force all events to be 'all-day' so they show up as banners
     for row in rows:
         row["allDay"] = True
         
