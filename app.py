@@ -566,19 +566,25 @@ def sync_classroom():
 def api_assignments():
     user_id = session["user_id"]
     
-    # If a parent is logged in, they should see their children's assignments
     if session.get("role") == "parent":
-        # Get all assignment for all linked students
+        # Get assignments for all linked students
         rows = db.execute("""
-            SELECT title, due_date as start, description 
+            SELECT title, due_date AS start, description 
             FROM assignments 
             WHERE student_id IN (SELECT student_id FROM links WHERE parent_id = ?)
         """, user_id)
     else:
-        # Student sees only their own
-        rows = db.execute("SELECT title as title, due_date as start FROM assignments WHERE student_id = ?", user_id)
+        # Student sees their own assignments
+        rows = db.execute("""
+            SELECT title, due_date AS start 
+            FROM assignments 
+            WHERE student_id = ?
+        """, user_id)
     
-    # FullCalendar expects a list of dictionaries with 'title' and 'start'
+    # Optional: Add a 'allDay' property if they aren't showing up
+    for row in rows:
+        row["allDay"] = True
+        
     return jsonify(rows)
 
 @app.route("/calendar")
