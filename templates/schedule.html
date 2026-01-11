@@ -19,8 +19,7 @@
                 <td class="fw-bold text-primary">{{ row.subject_name }}</td>
                 <td class="text-muted small">
                     <i class="bi bi-clock me-1"></i>
-                    {{ row.start_time.strftime('%I:%M %p') }} – {{ row.end_time.strftime('%I:%M %p') if row.end_time else '??' }}
-                </td>
+                    {{ row.start_time[:5] }} – {{ row.end_time[:5] if row.end_time else '??' }}
                 {% if not read_only %}
                 <td class="text-end">
                     <button class="btn btn-link text-muted p-0 me-2" data-bs-toggle="modal" data-bs-target="#editModal{{ row.id }}">
