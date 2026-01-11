@@ -569,13 +569,13 @@ def api_assignments():
         rows = db.execute("""
             SELECT title, due_date AS start, description 
             FROM assignments 
-            WHERE student_id IN (SELECT student_id FROM links WHERE parent_id = ?)
+            WHERE user_id IN (SELECT student_id FROM links WHERE parent_id = ?)
         """, session["user_id"])
     else:
         rows = db.execute("""
             SELECT title, due_date AS start 
             FROM assignments 
-            WHERE student_id = ?
+            WHERE user_id = ?
         """, session["user_id"])
     
     # Force all events to be 'all-day' so they show up as banners
