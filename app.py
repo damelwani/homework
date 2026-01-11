@@ -561,28 +561,53 @@ def sync_classroom():
 
     return redirect("/")
 
+from flask import jsonify
+
 @app.route("/api/assignments")
 @login_required
 def api_assignments():
-    # Use 'AS start' so FullCalendar can read the due_date column
-    if session.get("role") == "parent":
+    user_id = session["user_id"]
+    user_role = session.get("role")
+    
+    # 1. Fetch the data based on Role
+    if user_role == "parent":
+        # Get assignments for all students linked to this parent
         rows = db.execute("""
-            SELECT title, due_date AS start, description 
+            SELECT title, due_date, description 
             FROM assignments 
             WHERE user_id IN (SELECT student_id FROM links WHERE parent_id = ?)
-        """, session["user_id"])
+        """, user_id)
     else:
+        # Get assignments for the logged-in student
         rows = db.execute("""
-            SELECT title, due_date AS start 
+            SELECT title, due_date, description 
             FROM assignments 
             WHERE user_id = ?
-        """, session["user_id"])
-    
-    # Force all events to be 'all-day' so they show up as banners
+        """, user_id)
+
+    # 2. Format the data for FullCalendar
+    # FullCalendar MUST have 'title' and 'start' as YYYY-MM-DD strings
+    events = []
     for row in rows:
-        row["allDay"] = True
+        # Convert the date object/string to a clean YYYY-MM-DD format
+        date_val = row["due_date"]
         
-    return jsonify(rows)
+        if hasattr(date_val, 'strftime'):
+            # If it's a datetime object from the DB
+            clean_date = date_val.strftime('%Y-%m-%d')
+        else:
+            # If it's a string, take only the first 10 characters (YYYY-MM-DD)
+            clean_date = str(date_val)[:10]
+
+        events.append({
+            "title": row["title"],
+            "start": clean_date,
+            "description": row["description"], # Optional for tooltips
+            "allDay": True,
+            "color": "#0d6efd" # Sets the blue color directly from the server
+        })
+        
+    return jsonify(events)
 
 @app.route("/calendar")
 @login_required
