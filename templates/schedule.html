@@ -32,14 +32,24 @@
                 </td>
                 {% if not read_only %}
                 <td class="text-end pe-3">
-                    <button class="btn btn-sm btn-outline-secondary border-0" data-bs-toggle="modal" data-bs-target="#edit{{ row.id }}">
-                        <i class="bi bi-pencil"></i>
-                    </button>
-                    <form action="/delete_schedule/{{ row.id }}" method="post" class="d-inline" onsubmit="return confirm('Delete this class?');">
-                        <button type="submit" class="btn btn-sm btn-outline-danger border-0">
-                            <i class="bi bi-trash"></i>
+                    <div class="btn-group shadow-sm rounded-pill overflow-hidden">
+                        <button class="btn btn-sm btn-primary-subtle border-0 px-3" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#edit{{ row.id }}"
+                                title="Edit Class">
+                            <i class="bi bi-pencil-square text-primary"></i>
+                            <span class="d-none d-xl-inline ms-1 small text-primary fw-bold">Edit</span>
                         </button>
-                    </form>
+                
+                        <form action="/delete_schedule/{{ row.id }}" method="post" class="d-inline" 
+                              onsubmit="return confirm('Are you sure you want to delete {{ row.subject_name }}?');">
+                            <button type="submit" class="btn btn-sm btn-danger-subtle border-0 px-3"
+                                    title="Delete Class">
+                                <i class="bi bi-trash3 text-danger"></i>
+                                <span class="d-none d-xl-inline ms-1 small text-danger fw-bold">Delete</span>
+                            </button>
+                        </form>
+                    </div>
                 </td>
                 {% endif %}
             </tr>
