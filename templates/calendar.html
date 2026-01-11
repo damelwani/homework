@@ -12,35 +12,38 @@
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
 
 <script>
-  document.addEventListener('DOMContentLoaded', function() { // Fixed "ddocument" typo
+document.addEventListener('DOMContentLoaded', function() {
     var calendarEl = document.getElementById('calendar');
+    
     var calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         height: 'auto',
-        selectable: true,
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth,listWeek'
-        },
-        events: '/api/assignments', 
-        
-        // Ensure events are styled visibly
-        eventColor: '#0d6efd',
-        eventTextColor: '#ffffff',
-
-        loading: function(isLoading) {
-            if (!isLoading) {
-                console.log("Calendar finished loading events");
+        // This ensures the calendar fetches data every time the view changes
+        events: {
+            url: '/api/assignments',
+            failure: function() {
+                alert('There was an error fetching assignments!');
             }
         },
+        // Force the text to be visible
+        eventTextColor: '#ffffff',
+        eventColor: '#0d6efd',
+        
+        // Debugging: This will print the data to your browser's "Inspect" console
+        eventSourceSuccess: function(content, xhr) {
+            console.log("Successfully loaded assignments:", content);
+            return content;
+        },
+        
+        // Ensure it handles the "allDay" logic regardless of server settings
         eventDataTransform: function(eventData) {
-            eventData.allDay = true;
+            eventData.allDay = true; 
             return eventData;
         }
     });
+    
     calendar.render();
-  });
+});
 </script>
 
 <style>
