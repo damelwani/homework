@@ -233,10 +233,10 @@ def add_assignment():
         title = request.form.get("title")
         subject = request.form.get("subject")
         due_date = request.form.get("due_date")
-        type = request.form.get("type")
+        assignment_type = request.form.get("type")
         
         db.execute("INSERT INTO assignments (user_id, title, subject, due_date, type) VALUES (?, ?, ?, ?, ?)",
-                   session["user_id"], title, subject, due_date)
+                   session["user_id"], title, subject, due_date, assignment_type)
         return redirect("/")
 
     # Fetch unique subjects for the dropdown
