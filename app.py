@@ -235,7 +235,7 @@ def add_assignment():
         due_date = request.form.get("due_date")
         type = request.form.get("type")
         
-        db.execute("INSERT INTO assignments (user_id, title, subject, due_date, type) VALUES (?, ?, ?, ?)",
+        db.execute("INSERT INTO assignments (user_id, title, subject, due_date, type) VALUES (?, ?, ?, ?, ?)",
                    session["user_id"], title, subject, due_date)
         return redirect("/")
 
