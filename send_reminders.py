@@ -5,7 +5,6 @@ from cs50 import SQL
 from datetime import datetime, timedelta
 
 # --- Configuration ---
-# Uses environment variable for security, with your Neon URL as a backup
 database_url = os.environ.get("DATABASE_URL")
 if not database_url:
     database_url = "postgresql://neondb_owner:npg_wEKqG5s9jnlY@ep-wandering-tree-adanengq-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require"
@@ -33,68 +32,79 @@ def send_email(to_email, subject, html_body):
         print(f"❌ SMTP ERROR: {e}")
 
 def check_and_send():
-    # 1. Get tomorrow's date
+    # Dates for checking
     tomorrow = (datetime.now() + timedelta(days=1)).strftime('%Y-%m-%d')
-    print(f"--- LOG: Checking assignments due {tomorrow} ---")
+    three_days_out = (datetime.now() + timedelta(days=3)).strftime('%Y-%m-%d')
     
-    # 2. Find assignments due tomorrow that aren't completed
-    reminders = db.execute("SELECT * FROM assignments WHERE due_date = ? AND status != 'Completed'", tomorrow)
+    print(f"--- LOG: Running Daily Check (Tomorrow: {tomorrow}, 3-Days: {three_days_out}) ---")
     
-    if len(reminders) == 0:
-        print(f"--- LOG: No assignments due on {tomorrow}. Finishing task. ---")
+    # 1. FIND HOMEWORK DUE TOMORROW
+    homework_reminders = db.execute("""
+        SELECT * FROM assignments 
+        WHERE due_date = ? AND status != 'Completed' AND type = 'Homework'
+    """, tomorrow)
+
+    # 2. FIND EXAMS DUE IN 3 DAYS
+    exam_reminders = db.execute("""
+        SELECT * FROM assignments 
+        WHERE due_date = ? AND type = 'Exam'
+    """, three_days_out)
+
+    # COMBINE LISTS
+    all_reminders = []
+    for h in homework_reminders:
+        all_reminders.append({'data': h, 'days_left': 1, 'color': '#4f46e5'}) # Indigo for HW
+    for e in exam_reminders:
+        all_reminders.append({'data': e, 'days_left': 3, 'color': '#6f42c1'}) # Purple for Exams
+
+    if not all_reminders:
+        print("--- LOG: No reminders to send today. ---")
         return
 
-    print(f"--- LOG: Found {len(reminders)} assignments. Starting email loop. ---")
-
-    for r in reminders:
-        # 3. Get user info
+    for item in all_reminders:
+        r = item['data']
+        days = item['days_left']
+        theme_color = item['color']
+        
         user_rows = db.execute("SELECT username, email FROM users WHERE id = ?", r['user_id'])
         if not user_rows:
             continue
         
         user = user_rows[0]
-        # Use email column if available, otherwise fallback to username
         target_email = user['email'] if user.get('email') else user['username']
         student_name = user['username']
+        
+        # Determine the heading
+        heading = "Exam Reminder" if r['type'] == 'Exam' else "Assignment Deadline"
 
-        # 4. Styled HTML Template
         html_content = f"""
         <html>
-            <body style="font-family: 'Inter', Helvetica, Arial, sans-serif; background-color: #f3f4f6; padding: 20px; margin: 0;">
-                <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; box-shadow: 0 4px 12px rgba(0,0,0,0.1); border: 1px solid #e5e7eb;">
-                    <div style="background-color: #4f46e5; padding: 30px; text-align: center;">
-                        <h1 style="color: #ffffff; margin: 0; font-size: 26px; font-weight: 700;">Upcoming Deadline</h1>
+            <body style="font-family: 'Inter', Arial, sans-serif; background-color: #f3f4f6; padding: 20px;">
+                <div style="max-width: 600px; margin: 0 auto; background-color: #ffffff; border-radius: 12px; overflow: hidden; border: 1px solid #e5e7eb;">
+                    <div style="background-color: {theme_color}; padding: 30px; text-align: center;">
+                        <h1 style="color: #ffffff; margin: 0; font-size: 24px;">{heading}</h1>
                     </div>
-                    
                     <div style="padding: 40px;">
-                        <p style="font-size: 16px; color: #374151; margin-bottom: 10px;">Hi <strong>{student_name}</strong>,</p>
-                        <p style="font-size: 16px; color: #6b7280; line-height: 1.6;">You have an assignment coming up for <strong>{r['subject']}</strong>. Don't forget to turn it in!</p>
+                        <p>Hi <strong>{student_name}</strong>,</p>
+                        <p>This is a reminder that you have a <strong>{r['type']}</strong> coming up in <strong>{days} day(s)</strong>.</p>
                         
-                        <div style="margin: 30px 0; padding: 25px; border-radius: 10px; background-color: #f9fafb; border-left: 5px solid #4f46e5;">
-                            <h3 style="margin: 0 0 8px 0; color: #111827; font-size: 18px; font-weight: 600;">{r['title']}</h3>
-                            <p style="margin: 0; color: #4f46e5; font-size: 14px; font-weight: 500; text-transform: uppercase;">{r['subject']}</p>
-                            <p style="margin: 10px 0 0 0; color: #ef4444; font-size: 14px; font-weight: 600;">Due Date: {tomorrow}</p>
+                        <div style="margin: 30px 0; padding: 25px; border-radius: 10px; background-color: #f9fafb; border-left: 5px solid {theme_color};">
+                            <h3 style="margin: 0;">{r['title']}</h3>
+                            <p style="margin: 5px 0; color: {theme_color}; font-weight: bold;">{r['subject']}</p>
+                            <p style="margin: 10px 0 0 0; color: #ef4444;">Due Date: {r['due_date']}</p>
                         </div>
                         
-                        <div style="text-align: center; margin-top: 35px;">
-                            <a href="{APP_URL}" 
-                               style="background-color: #4f46e5; color: #ffffff; padding: 14px 28px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block; font-size: 16px;">
-                               View My Dashboard
-                            </a>
+                        <div style="text-align: center; margin-top: 30px;">
+                            <a href="{APP_URL}" style="background-color: {theme_color}; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 8px; font-weight: 600; display: inline-block;">View Dashboard</a>
                         </div>
-                    </div>
-                    
-                    <div style="background-color: #f9fafb; padding: 20px; text-align: center; border-top: 1px solid #e5e7eb;">
-                        <p style="font-size: 12px; color: #9ca3af; margin: 0;">
-                            <strong>Homework Tracker</strong> by Trivia with Mom
-                        </p>
                     </div>
                 </div>
             </body>
         </html>
         """
         
-        send_email(target_email, f"🔔 Tomorrow: {r['title']} is due!", html_content)
+        subject_line = f"🔔 {r['type']} Reminder: {r['title']}"
+        send_email(target_email, subject_line, html_content)
 
 if __name__ == "__main__":
     check_and_send()
