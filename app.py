@@ -152,9 +152,9 @@ def register():
 @login_required
 def schedule():
     if request.method == "POST":
-        # Only students can add classes
+        # Security check: Only students can modify their own schedules
         if session.get("role") != "student":
-            return redirect("/")
+            return redirect("/schedule")
             
         subject = request.form.get("subject")
         period = request.form.get("period")
@@ -163,29 +163,64 @@ def schedule():
         end_time = request.form.get("end_time")
         room_number = request.form.get("room_number")
 
+        # Basic validation
+        if not subject or not period or not cycle_day:
+            return redirect("/schedule")
+
         db.execute("""
             INSERT INTO schedule (user_id, subject_name, period, cycle_day, start_time, end_time, room_number)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         """, session["user_id"], subject, period, cycle_day, start_time, end_time, room_number)
+        
         return redirect("/schedule")
 
     # --- GET REQUEST ---
-    if session.get("role") == "parent":
-        # Get linked students
+    user_role = session.get("role")
+
+    if user_role == "parent":
+        # 1. Fetch all students linked to this parent ID
         students = db.execute("""
             SELECT id, username FROM users 
             WHERE id IN (SELECT student_id FROM links WHERE parent_id = ?)
         """, session["user_id"])
 
         grouped_classes = {}
+        
+        # 2. Loop through each student and fetch their individual schedule
         for s in students:
-            rows = db.execute("SELECT * FROM schedule WHERE user_id = ? ORDER BY cycle_day, period", s["id"])
+            rows = db.execute("""
+                SELECT * FROM schedule 
+                WHERE user_id = ? 
+                ORDER BY cycle_day ASC, period ASC
+            """, s["id"])
+            
+            # 3. Format times for the template
             for r in rows:
-                r["start_time"] = parse_time(r["start_time"])
-                r["end_time"] = parse_time(r["end_time"])
+                if r.get("start_time"):
+                    r["start_time"] = parse_time(r["start_time"])
+                if r.get("end_time"):
+                    r["end_time"] = parse_time(r["end_time"])
+            
+            # Add to dictionary even if rows is empty so the name shows up
             grouped_classes[s["username"]] = rows
             
         return render_template("schedule.html", grouped_classes=grouped_classes)
+
+    else:
+        # Student View: Fetch classes for the logged-in student
+        rows = db.execute("""
+            SELECT * FROM schedule 
+            WHERE user_id = ? 
+            ORDER BY cycle_day ASC, period ASC
+        """, session["user_id"])
+        
+        for r in rows:
+            if r.get("start_time"):
+                r["start_time"] = parse_time(r["start_time"])
+            if r.get("end_time"):
+                r["end_time"] = parse_time(r["end_time"])
+                
+        return render_template("schedule.html", schedule=rows)
 
     else:
         # Student View
