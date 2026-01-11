@@ -602,7 +602,6 @@ def api_assignments():
         events.append({
             "title": row["title"],
             "start": clean_date,
-            "description": row["description"], # Optional for tooltips
             "allDay": True,
             "color": "#0d6efd" # Sets the blue color directly from the server
         })
