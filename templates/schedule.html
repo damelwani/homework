@@ -123,29 +123,36 @@
     {% endfor %}
 {% endif %}
 
-{# ADD CLASS MODAL #}
-<div class="modal fade" id="addClass" tabindex="-1">
+{# --- ADD CLASS MODAL --- #}
+<div class="modal fade" id="addClass" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <form action="/schedule" method="POST" class="modal-content shadow border-0">
             <div class="modal-header">
-                <h5 class="modal-title fw-bold">New Class</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                <h5 class="modal-title fw-bold">Add New Class</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="mb-3">
-                    <label class="form-label small fw-bold text-body-secondary">Subject</label>
-                    <input type="text" name="subject" class="form-control" required>
+                    <label class="form-label small fw-bold text-body-secondary">Subject Name</label>
+                    <input type="text" name="subject" class="form-control" placeholder="e.g. Computer Science" required>
                 </div>
+
                 <div class="row g-2 mb-3">
                     <div class="col-6">
-                        <label class="form-label small fw-bold text-body-secondary">Day</label>
+                        <label class="form-label small fw-bold text-body-secondary">Cycle Day</label>
                         <input type="text" name="cycle_day" class="form-control" placeholder="A" required>
                     </div>
                     <div class="col-6">
                         <label class="form-label small fw-bold text-body-secondary">Period</label>
-                        <input type="number" name="period" class="form-control" required>
+                        <input type="number" name="period" class="form-control" placeholder="1" required>
                     </div>
                 </div>
+
+                <div class="mb-3">
+                    <label class="form-label small fw-bold text-body-secondary">Room Number</label>
+                    <input type="text" name="room_number" class="form-control" placeholder="Lab 204">
+                </div>
+
                 <div class="row g-2">
                     <div class="col-6">
                         <label class="form-label small fw-bold text-body-secondary">Start Time</label>
@@ -158,7 +165,7 @@
                 </div>
             </div>
             <div class="modal-footer border-0">
-                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold">Add to Schedule</button>
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold rounded-3">Add to Schedule</button>
             </div>
         </form>
     </div>
