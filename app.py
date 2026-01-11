@@ -40,7 +40,24 @@ SCOPES = [
 
 app.config["SESSION_PERMANENT"] = False
 
-
+def parse_time(time_val):
+    if not time_val:
+        return None
+    # If it's already a time object (from some databases), just return it
+    if isinstance(time_val, datetime):
+        return time_val.time()
+    if not isinstance(time_val, str):
+        return time_val
+        
+    try:
+        # Try HH:MM:SS format
+        return datetime.strptime(time_val, '%H:%M:%S').time()
+    except ValueError:
+        try:
+            # Try HH:MM format
+            return datetime.strptime(time_val, '%H:%M').time()
+        except ValueError:
+            return time_val
 
 #From AI
 def format_date(value):
