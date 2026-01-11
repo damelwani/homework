@@ -1,13 +1,10 @@
 {% extends "layout.html" %}
 
-{% block title %}Calendar{% endblock %}
-
 {% block main %}
-<div class="container py-4">
-    <div class="card shadow-sm border-0 rounded-4 p-4">
-        <h2 class="fw-bold mb-4"><i class="bi bi-calendar3 me-2 text-primary"></i>Assignment Calendar</h2>
-        
-        <div id="calendar" style="min-height: 600px;"></div>
+<div class="container-fluid py-4 px-md-5">
+    <div class="card shadow-sm border-0 rounded-4">
+        <div class="card-body p-0"> <div id="calendar"></div>
+        </div>
     </div>
 </div>
 
@@ -18,30 +15,45 @@
     var calendarEl = document.getElementById('calendar');
     var calendar = new FullCalendar.Calendar(calendarEl, {
       initialView: 'dayGridMonth',
-      themeSystem: 'bootstrap5',
+      height: '80vh', // Sets height based on the screen size
+      aspectRatio: 2, // Makes cells wider than they are tall
       headerToolbar: {
         left: 'prev,next today',
         center: 'title',
-        right: 'dayGridMonth,timeGridWeek'
+        right: 'dayGridMonth,timeGridWeek,listWeek'
       },
-      // This is where the magic happens: it fetches from your Flask route
-      events: '/api/assignments',
+      events: '/api/assignments', // Flask endpoint
+      
+      // Styling
+      eventColor: '#0d6efd',
+      eventTextColor: '#ffffff',
+      displayEventTime: false, // Hides "12a" since these are all-day events
       
       eventClick: function(info) {
-        alert('Assignment: ' + info.event.title + '\nDue Date: ' + info.event.start.toDateString());
-      },
-      // Style assignments to match your blue theme
-      eventColor: '#0d6efd',
-      eventTextColor: '#ffffff'
+        alert('Assignment: ' + info.event.title);
+      }
     });
     calendar.render();
   });
 </script>
 
 <style>
-    /* Ensure the calendar matches your system theme */
-    .fc { max-width: 100%; margin: 0 auto; }
-    .fc-toolbar-title { font-weight: bold; font-size: 1.5rem !important; }
-    .fc-button-primary { background-color: #0d6efd !important; border-color: #0d6efd !important; }
+    /* Custom CSS to polish the look */
+    #calendar {
+        padding: 20px;
+        background: white;
+        border-radius: 15px;
+    }
+    /* Make the calendar header look modern */
+    .fc-toolbar-title {
+        font-size: 1.5rem !important;
+        font-weight: 700;
+        color: #0d6efd;
+    }
+    .fc-button-primary {
+        background-color: #0d6efd !important;
+        border: none !important;
+        text-transform: capitalize;
+    }
 </style>
 {% endblock %}
