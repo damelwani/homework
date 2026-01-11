@@ -1,11 +1,10 @@
 {% extends "layout.html" %}
 
-{# --- THE TABLE MACRO --- #}
 {% macro render_table(rows, read_only) %}
-<div class="table-responsive rounded-3 mb-4 border">
+<div class="table-responsive rounded-3 mb-4 border border-secondary-subtle">
     <table class="table table-hover align-middle mb-0">
         <thead class="table-active">
-            <tr class="small fw-bold text-uppercase">
+            <tr class="small fw-bold text-uppercase text-secondary">
                 <th style="width: 10%" class="ps-3">Period</th>
                 <th style="width: 40%">Subject & Room</th>
                 <th style="width: 30%">Time</th>
@@ -18,187 +17,79 @@
                 <td class="fw-bold text-center text-secondary">P{{ row.period }}</td>
                 <td>
                     <div class="fw-bold text-primary-emphasis">{{ row.subject_name }}</div>
-                    <div class="small text-secondary">
+                    <div class="small text-body-secondary">
                         <i class="bi bi-geo-alt me-1"></i>{{ row.room_number if row.room_number else 'N/A' }}
                     </div>
                 </td>
                 <td class="small text-body-secondary">
-                    <i class="bi bi-clock me-1"></i>
                     {% if row.start_time and row.end_time %}
                         {{ row.start_time.strftime('%I:%M %p') }} – {{ row.end_time.strftime('%I:%M %p') }}
                     {% else %}
-                        <span class="text-warning">Time not set</span>
+                        <span class="text-warning small">Time not set</span>
                     {% endif %}
                 </td>
+                
                 {% if not read_only %}
                 <td class="text-end pe-3">
-                    <div class="btn-group shadow-sm rounded-pill overflow-hidden">
-                        <button class="btn btn-sm btn-primary-subtle border-0 px-3" 
-                                data-bs-toggle="modal" 
-                                data-bs-target="#edit{{ row.id }}"
-                                title="Edit Class">
+                    <div class="btn-group shadow-sm rounded-pill overflow-hidden border border-secondary-subtle">
+                        <button class="btn btn-sm btn-primary-subtle px-3 border-0" 
+                                data-bs-toggle="modal" data-bs-target="#edit{{ row.id }}">
                             <i class="bi bi-pencil-square text-primary"></i>
-                            <span class="d-none d-xl-inline ms-1 small text-primary fw-bold">Edit</span>
                         </button>
-                
+
                         <form action="/delete_schedule/{{ row.id }}" method="post" class="d-inline" 
-                              onsubmit="return confirm('Are you sure you want to delete {{ row.subject_name }}?');">
-                            <button type="submit" class="btn btn-sm btn-danger-subtle border-0 px-3"
-                                    title="Delete Class">
+                              onsubmit="return confirm('Delete {{ row.subject_name }}?');">
+                            <button type="submit" class="btn btn-sm btn-danger-subtle px-3 border-0">
                                 <i class="bi bi-trash3 text-danger"></i>
-                                <span class="d-none d-xl-inline ms-1 small text-danger fw-bold">Delete</span>
                             </button>
                         </form>
                     </div>
                 </td>
                 {% endif %}
             </tr>
-
-            {% if not read_only %}
-            {# --- EDIT MODAL --- #}
-            <div class="modal fade" id="edit{{ row.id }}" tabindex="-1" aria-hidden="true">
-                <div class="modal-dialog modal-dialog-centered">
-                    <form action="/edit_schedule/{{ row.id }}" method="POST" class="modal-content shadow">
-                        <div class="modal-header border-bottom-0">
-                            <h5 class="modal-title fw-bold">Edit Class</h5>
-                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="mb-3">
-                                <label class="form-label small fw-bold">Subject</label>
-                                <input type="text" name="subject" class="form-control" value="{{ row.subject_name }}" required>
-                            </div>
-                            <div class="mb-3">
-                                <label class="form-label small fw-bold">Room Number</label>
-                                <input type="text" name="room_number" class="form-control" value="{{ row.room_number }}">
-                            </div>
-                            <div class="row g-2">
-                                <div class="col-6">
-                                    <label class="form-label small fw-bold">Start</label>
-                                    <input type="time" name="start_time" class="form-control" 
-                                           value="{{ row.start_time.strftime('%H:%M') if row.start_time else '' }}" required>
-                                </div>
-                                <div class="col-6">
-                                    <label class="form-label small fw-bold">End</label>
-                                    <input type="time" name="end_time" class="form-control" 
-                                           value="{{ row.end_time.strftime('%H:%M') if row.end_time else '' }}" required>
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer border-top-0">
-                            <button type="submit" class="btn btn-primary w-100 fw-bold">Save Changes</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-            {% endif %}
             {% endfor %}
         </tbody>
     </table>
 </div>
-{% endmacro %}
 
-{% block title %} Schedule {% endblock %}
-
-{% block main %}
-<div class="container py-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <div>
-            <h2 class="fw-bold mb-0">Schedule</h2>
-            <p class="text-body-secondary small">View and manage school rotations.</p>
+{# --- MODALS MOVED OUTSIDE THE TABLE --- #}
+{% if not read_only %}
+    {% for row in rows %}
+    <div class="modal fade text-start" id="edit{{ row.id }}" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <form action="/edit_schedule/{{ row.id }}" method="POST" class="modal-content shadow-lg">
+                <div class="modal-header border-bottom-0">
+                    <h5 class="modal-title fw-bold">Edit Class</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body py-0">
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">Subject</label>
+                        <input type="text" name="subject" class="form-control bg-body-tertiary" value="{{ row.subject_name }}" required>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label small fw-bold text-secondary">Room Number</label>
+                        <input type="text" name="room_number" class="form-control bg-body-tertiary" value="{{ row.room_number }}">
+                    </div>
+                    <div class="row g-3 mb-4">
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-secondary">Start Time</label>
+                            <input type="time" name="start_time" class="form-control bg-body-tertiary" 
+                                   value="{{ row.start_time.strftime('%H:%M') if row.start_time else '' }}" required>
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small fw-bold text-secondary">End Time</label>
+                            <input type="time" name="end_time" class="form-control bg-body-tertiary" 
+                                   value="{{ row.end_time.strftime('%H:%M') if row.end_time else '' }}" required>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 pt-0 pb-4">
+                    <button type="submit" class="btn btn-primary w-100 py-2 fw-bold rounded-3">Save Changes</button>
+                </div>
+            </form>
         </div>
-        {% if session['role'] == 'student' %}
-            <button class="btn btn-primary rounded-pill px-4" data-bs-toggle="modal" data-bs-target="#addClass">
-                <i class="bi bi-plus-lg me-1"></i> Add Class
-            </button>
-        {% endif %}
     </div>
-
-    {% if session['role'] == 'parent' %}
-        {# --- PARENT VIEW --- #}
-        {% if grouped_classes %}
-            {% for student_name, student_rows in grouped_classes.items() %}
-                <div class="mb-5 p-3 rounded-4 bg-body-tertiary border">
-                    <h4 class="fw-bold mb-3 text-primary"><i class="bi bi-person-circle me-2"></i>{{ student_name }}</h4>
-                    {% if student_rows %}
-                        {% for day, day_rows in student_rows | groupby('cycle_day') %}
-                            <p class="fw-bold small text-uppercase text-secondary mb-2 ms-1">Day {{ day }}</p>
-                            {{ render_table(day_rows, read_only=True) }}
-                        {% endfor %}
-                    {% else %}
-                        <p class="text-body-secondary ms-1">No schedule uploaded.</p>
-                    {% endif %}
-                </div>
-            {% endfor %}
-        {% else %}
-            <div class="text-center py-5">
-                <p class="text-body-secondary">No linked students found.</p>
-            </div>
-        {% endif %}
-
-    {% else %}
-        {# --- STUDENT VIEW --- #}
-        {% if schedule %}
-            {% for day, day_rows in schedule | groupby('cycle_day') %}
-                <div class="mb-4">
-                    <h5 class="fw-bold mb-3"><span class="badge bg-primary-subtle text-primary-emphasis border border-primary-subtle px-3">Day {{ day }}</span></h5>
-                    {{ render_table(day_rows, read_only=False) }}
-                </div>
-            {% endfor %}
-        {% else %}
-            <div class="text-center py-5 border rounded-4 bg-body-tertiary">
-                <i class="bi bi-calendar-x text-body-secondary display-3"></i>
-                <h4 class="mt-3">Empty Schedule</h4>
-                <p class="text-body-secondary">Click "Add Class" to build your timetable.</p>
-            </div>
-        {% endif %}
-    {% endif %}
-</div>
-
-{# --- ADD CLASS MODAL --- #}
-{% if session['role'] == 'student' %}
-<div class="modal fade" id="addClass" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <form action="/schedule" method="POST" class="modal-content shadow">
-            <div class="modal-header border-bottom-0">
-                <h5 class="modal-title fw-bold">New Class</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-                <div class="mb-3">
-                    <label class="form-label small fw-bold">Subject</label>
-                    <input type="text" name="subject" class="form-control" placeholder="Math" required>
-                </div>
-                <div class="row g-2 mb-3">
-                    <div class="col-6">
-                        <label class="form-label small fw-bold">Cycle Day</label>
-                        <input type="text" name="cycle_day" class="form-control" placeholder="A" required>
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label small fw-bold">Period</label>
-                        <input type="number" name="period" class="form-control" placeholder="1" required>
-                    </div>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label small fw-bold">Room</label>
-                    <input type="text" name="room_number" class="form-control" placeholder="101">
-                </div>
-                <div class="row g-2">
-                    <div class="col-6">
-                        <label class="form-label small fw-bold">Start Time</label>
-                        <input type="time" name="start_time" class="form-control" required>
-                    </div>
-                    <div class="col-6">
-                        <label class="form-label small fw-bold">End Time</label>
-                        <input type="time" name="end_time" class="form-control" required>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer border-top-0">
-                <button type="submit" class="btn btn-primary w-100 fw-bold">Add to Schedule</button>
-            </div>
-        </form>
-    </div>
-</div>
+    {% endfor %}
 {% endif %}
-{% endblock %}
+{% endmacro %}
