@@ -59,13 +59,24 @@
 
 {% block main %}
 <style>
-    /* Force high contrast for dark mode */
-    body { background-color: #121212 !important; color: #ffffff !important; }
-    .table { color: #ffffff !important; }
-    .modal-content { background-color: #1c1c1c !important; color: white !important; border: 1px solid #444 !important; }
-    .form-control { background-color: #2b2b2b !important; color: white !important; border: 1px solid #444 !important; }
-    .form-control:focus { background-color: #333 !important; color: white !important; }
-    .text-secondary { color: #aaaaaa !important; }
+    body, .container, .table-responsive {
+        background-color: #121212 !important;
+    }
+
+    .table, .table td, .table th, h2, h5, p, .form-label {
+        color: #ffffff !important;
+    }
+
+    .text-primary-emphasis, .fw-bold.text-white {
+        color: #0dcaf0 !important;
+    }
+
+    .table-active {
+        background-color: #2b2b2b !important;
+    }
+    .bi {
+        color: #ffffff !important;
+    }
 </style>
 
 <div class="container py-4">
