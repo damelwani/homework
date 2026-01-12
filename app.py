@@ -336,7 +336,8 @@ def login():
 
         # ... after password verification ...
         session["user_id"] = rows[0]["id"]
-        session["role"] = rows[0]["role"] # Make sure 'role' is a column in your users table
+        session["role"] = rows[0]["role"]
+        session["notifications"] = rows[0]["notifications_enabled"]
 
         # Redirect based on role
         if session["role"] == "parent":
@@ -621,6 +622,19 @@ def api_assignments():
 @login_required
 def calendar_view():
     return render_template("calendar.html")
+
+@app.route("/update_notifications", methods=["POST"])
+@login_required
+def update_notifications():
+    data = request.get_json()
+    enabled = data.get("enabled")
+    
+    db.execute("UPDATE users SET notifications_enabled = ? WHERE id = ?", 
+               enabled, session["user_id"])
+    
+    session["notifications"] = enabled
+    
+    return jsonify({"success": True})
 
 @app.errorhandler(500)
 def internal_error(error):
