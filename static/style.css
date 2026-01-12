@@ -1,6 +1,5 @@
 /* 1. Global Variables & Modern Reset */
 :root {
-    /* Changed from Indigo to Menu Bar Blue */
     --primary-color: #0d6efd;    
     --primary-hover: #0a58ca;
     --success-color: #22c55e;
@@ -42,9 +41,8 @@ body {
     color: var(--primary-color) !important;
 }
 
-/* 3. Assignment Cards - FIXED FOR DARK MODE */
+/* 3. Assignment Cards */
 .assignment-card {
-    /* Use Bootstrap variables instead of #ffffff so it flips to dark */
     background-color: var(--bs-body-bg); 
     border: 1px solid var(--bs-border-color);
     border-radius: 12px;
@@ -62,7 +60,6 @@ body {
     border-color: var(--primary-color);
 }
 
-/* Use Bootstrap variable for heading text visibility */
 .assignment-info h5 {
     margin-bottom: 0.25rem;
     font-weight: 600;
@@ -111,33 +108,53 @@ body {
 
 .form-control:focus {
     border-color: var(--primary-color);
-    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15); /* Blue focus ring */
+    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.15);
 }
 
-/* 6. Dark Mode Adjustments */
-[data-bs-theme="dark"] .assignment-card {
-    background-color: var(--bs-body-tertiary);
-}
-
-/* Prevent time/number input controls from overlapping the text */
+/* 6. Form Input Controls (Timer Fix) */
 input[type="time"], 
 input[type="number"] {
-    padding-right: 30px !important; /* Creates a "safe zone" for the arrows */
+    padding-right: 10px !important;
+    min-width: 140px;
     position: relative;
 }
 
-/* Optional: Make the input wider to ensure the full time/number is visible */
-.form-control-time {
-    min-width: 130px;
-}
-
-/* If you want to hide the arrows entirely to keep it clean */
+/* Hides the arrows that overlap numbers */
 input::-webkit-outer-spin-button,
 input::-webkit-inner-spin-button {
+    -webkit-appearance: none;
     margin: 0;
+}
+
+input[type=number] {
+    -moz-appearance: textfield; /* Firefox support */
+}
+
+/* 7. Dark Mode Specific Overrides */
+[data-bs-theme="dark"] .assignment-card {
+    background-color: var(--bs-body-tertiary);
 }
 
 [data-bs-theme="dark"] .status-done { background-color: rgba(74, 222, 128, 0.2); color: #4ade80; }
 [data-bs-theme="dark"] .status-urgent { background-color: rgba(248, 113, 113, 0.2); color: #f87171; }
 [data-bs-theme="dark"] .status-soon { background-color: rgba(251, 191, 36, 0.2); color: #fbbf24; }
 [data-bs-theme="dark"] .status-pending { background-color: rgba(209, 213, 219, 0.2); color: #d1d5db; }
+
+/* 8. Landing Page Elements */
+.landing-hero {
+    background: linear-gradient(145deg, #1a1a1a 0%, #2c3e50 100%);
+}
+
+.feature-box {
+    padding: 2rem;
+    border-radius: 16px;
+    border: 1px solid var(--bs-border-color);
+    background-color: var(--bs-body-tertiary);
+    height: 100%;
+    transition: transform 0.2s ease;
+}
+
+.feature-box:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary-color);
+}
