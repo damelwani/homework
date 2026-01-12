@@ -180,19 +180,22 @@ def schedule():
     user_role = session.get("role")
 
     if user_role == "parent":
-    # Get linked students using the 'relationships' table name
-    students = db.execute("""
-        SELECT id, username FROM users 
-        WHERE id IN (SELECT child_id FROM relationships WHERE parent_id = ?)
-    """, session["user_id"])
+        # Indent this whole block one more level
+        students = db.execute("""
+            SELECT id, username FROM users 
+            WHERE id IN (SELECT child_id FROM relationships WHERE parent_id = ?)
+        """, session["user_id"])
 
-    grouped_classes = {}
-    for s in students:
-        rows = db.execute("SELECT * FROM schedule WHERE user_id = ? ORDER BY cycle_day, period", s["id"])
-        for r in rows:
-            r["start_time"] = parse_time(r["start_time"])
-            r["end_time"] = parse_time(r["end_time"])
-        grouped_classes[s["username"]] = rows
+        grouped_classes = {}
+        for s in students:
+            rows = db.execute("SELECT * FROM schedule WHERE user_id = ? ORDER BY cycle_day, period", s["id"])
+            for r in rows:
+                r["start_time"] = parse_time(r["start_time"])
+                r["end_time"] = parse_time(r["end_time"])
+            grouped_classes[s["username"]] = rows
+        
+        # ADD THIS RETURN: Without this, parents get a blank screen or error
+        return render_template("schedule.html", grouped_classes=grouped_classes)
 
     else:
         # Student View logic
