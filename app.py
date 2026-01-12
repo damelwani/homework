@@ -643,3 +643,8 @@ def internal_error(error):
 @app.errorhandler(404)
 def internal_error(error):
     return render_template('404.html'), 404
+
+@app.route("/unsubscribe/<int:user_id>")
+def unsubscribe(user_id):
+    db.execute("UPDATE users SET notifications_enabled = FALSE WHERE id = ?", user_id)
+    return render_template("message.html", message="You have been unsubscribed from email alerts.")
