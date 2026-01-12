@@ -119,6 +119,24 @@ body {
     background-color: var(--bs-body-tertiary);
 }
 
+/* Prevent time/number input controls from overlapping the text */
+input[type="time"], 
+input[type="number"] {
+    padding-right: 30px !important; /* Creates a "safe zone" for the arrows */
+    position: relative;
+}
+
+/* Optional: Make the input wider to ensure the full time/number is visible */
+.form-control-time {
+    min-width: 130px;
+}
+
+/* If you want to hide the arrows entirely to keep it clean */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+    margin: 0;
+}
+
 [data-bs-theme="dark"] .status-done { background-color: rgba(74, 222, 128, 0.2); color: #4ade80; }
 [data-bs-theme="dark"] .status-urgent { background-color: rgba(248, 113, 113, 0.2); color: #f87171; }
 [data-bs-theme="dark"] .status-soon { background-color: rgba(251, 191, 36, 0.2); color: #fbbf24; }
