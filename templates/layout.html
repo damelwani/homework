@@ -69,6 +69,13 @@
 
             <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
                 {% if session["user_id"] %}
+                <li class="nav-item d-flex align-items-center me-3">
+                    <div class="form-check form-switch mb-0">
+                        <input class="form-check-input" type="checkbox" role="switch" id="notifToggle" 
+                               {% if session.get('notifications') %}checked{% endif %}>
+                        <label class="form-check-label small text-secondary ms-1" for="notifToggle">Email Alerts</label>
+                    </div>
+                    </li>
                     <li class="nav-item"><a class="nav-link" href="/logout">Log Out</a></li>
                 {% else %}
                     <li class="nav-item"><a class="nav-link" href="/register">Register</a></li>
@@ -115,6 +122,24 @@
             colors: ['#4f46e5', '#818cf8', '#ffffff']
         });
     }
+
+    document.getElementById('notifToggle').addEventListener('change', function() {
+    fetch('/update_notifications', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            enabled: this.checked
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            console.log("Preference saved!");
+        }
+    });
+});
 </script>
     </body>
 </html>
