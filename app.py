@@ -276,8 +276,11 @@ def add_assignment():
 
 @app.route("/")
 @login_required
-@student_required
 def index():
+
+    if session.get("role") == "parent":
+        return redirect("/parent")
+        
     user_data = db.execute("SELECT google_creds FROM users WHERE id = ?", session["user_id"])
     google_connected = True if user_data[0]["google_creds"] else False
     # 1. Fetch the username from the database
