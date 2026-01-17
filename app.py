@@ -40,10 +40,12 @@ SCOPES = [
 
 app.config["SESSION_PERMANENT"] = False
 
+user_role = session.get("user_role")
+
 def student_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if session.get("user_role") != "student":
+        if session.get("role") != "student":
             abort(403) # This triggers the error handler below
         return f(*args, **kwargs)
     return decorated_function
@@ -51,7 +53,7 @@ def student_required(f):
 def parent_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if session.get("user_role") != "parent":
+        if session.get("role") != "parent":
             abort(403) # This triggers the error handler below
         return f(*args, **kwargs)
     return decorated_function
