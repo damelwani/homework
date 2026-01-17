@@ -40,8 +40,6 @@ SCOPES = [
 
 app.config["SESSION_PERMANENT"] = False
 
-user_role = session.get("user_role")
-
 def student_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
