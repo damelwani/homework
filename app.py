@@ -1,7 +1,7 @@
 import os
 
 from cs50 import SQL
-from flask import Flask, flash, redirect, render_template, request, session, url_for, jsonify
+from flask import Flask, flash, redirect, render_template, request, session, url_for, jsonify, abort
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
 from helpers import login_required
@@ -39,6 +39,26 @@ SCOPES = [
 ]
 
 app.config["SESSION_PERMANENT"] = False
+
+def student_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if session.get("user_role") != "student":
+            abort(403) # This triggers the error handler below
+        return f(*args, **kwargs)
+    return decorated_function
+
+def parent_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if session.get("user_role") != "parent":
+            abort(403) # This triggers the error handler below
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.errorhandler(403)
+def forbidden(e):
+    return render_template("403.html"), 403
 
 def parse_time(time_val):
     if not time_val:
@@ -233,6 +253,8 @@ def clear_schedule():
     return redirect("/schedule")
 
 @app.route("/add", methods=["GET", "POST"])
+@login_required
+@student_required
 def add_assignment():
     if not session.get("user_id"):
         return redirect("/login")
@@ -254,6 +276,7 @@ def add_assignment():
 
 @app.route("/")
 @login_required
+@student_required
 def index():
     user_data = db.execute("SELECT google_creds FROM users WHERE id = ?", session["user_id"])
     google_connected = True if user_data[0]["google_creds"] else False
@@ -350,6 +373,7 @@ def login():
 
 @app.route("/delete", methods=["POST"])
 @login_required
+@student_required
 def delete():
     id_to_delete = request.form.get("id")
 
@@ -362,6 +386,7 @@ def delete():
 
 @app.route("/update", methods=["POST"])
 @login_required
+@student_required
 def update():
     user_row = db.execute("SELECT username FROM users WHERE id = ?", session["user_id"])
     username = user_row[0]["username"] if user_row else "User"
@@ -387,6 +412,7 @@ def logout():
 #Parent code partially from AI
 @app.route("/parent")
 @login_required
+@parent_required
 def parent_view():
     user_tz = pytz.timezone('US/Eastern') 
     today = datetime.now(user_tz).date()
@@ -437,6 +463,7 @@ def parent_view():
         today_plus_2=today_plus_2)
 #Parent link code partially from AI
 @app.route("/link", methods=["GET", "POST"])
+@parent_required
 @login_required
 def link_child():
     if request.method == "POST":
@@ -468,6 +495,7 @@ def link_child():
 
 @app.route("/edit/<int:task_id>", methods=["GET", "POST"])
 @login_required
+@student_required
 def edit(task_id):
     if request.method == "POST":
         # Get data from the form
@@ -496,6 +524,7 @@ def edit(task_id):
 
 @app.route("/sync_classroom")
 @login_required
+@student_required
 def sync_classroom():
     user_row = db.execute("SELECT google_creds FROM users WHERE id = ?", session["user_id"])
     if not user_row or not user_row[0]["google_creds"]:
