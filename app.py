@@ -10,6 +10,8 @@ import json
 from google_auth_oauthlib.flow import Flow
 from googleapiclient.discovery import build
 from google.oauth2.credentials import Credentials
+from google.oauth2 import id_token
+from google.auth.transport import requests
 import smtplib
 import pytz
 
@@ -34,8 +36,11 @@ except Exception as e:
 EMAIL_ADDRESS = os.environ.get("EMAIL_ADDRESS")
 EMAIL_PASSWORD = os.environ.get("EMAIL_PASSWORD")
 SCOPES = [
-    'https://www.googleapis.com/auth/classroom.courses.readonly',
-    'https://www.googleapis.com/auth/classroom.coursework.me'
+    "openid",
+    "https://www.googleapis.com/auth/userinfo.email",
+    "https://www.googleapis.com/auth/userinfo.profile",
+    "https://www.googleapis.com/auth/classroom.courses.readonly",
+    "https://www.googleapis.com/auth/classroom.coursework.me.readonly"
 ]
 
 app.config["SESSION_PERMANENT"] = False
@@ -116,12 +121,11 @@ def landing():
     return render_template("landing.html")
 
 @app.route("/google_login")
-@login_required
-def google_login():
+def google_login():  # Removed @login_required
     flow = Flow.from_client_secrets_file(
         CLIENT_SECRETS_FILE,
         scopes=SCOPES,
-        redirect_uri=url_for('google_callback', _external=True)
+        redirect_uri="https://www.trackhw.com/google_callback" # Use the verified URI
     )
     authorization_url, state = flow.authorization_url(
         access_type='offline',
@@ -131,25 +135,56 @@ def google_login():
     session["google_state"] = state
     return redirect(authorization_url)
 
+from google.oauth2 import id_token
+from google.auth.transport import requests
+
 @app.route("/google_callback")
-@login_required
-def google_callback():
+def google_callback(): # Removed @login_required
     flow = Flow.from_client_secrets_file(
         CLIENT_SECRETS_FILE,
         scopes=SCOPES,
         state=session.get("google_state"),
-        redirect_uri=url_for('google_callback', _external=True)
+        redirect_uri="https://www.trackhw.com/google_callback"
     )
     
-    # This finishes the handshake
+    # Finish the handshake
     flow.fetch_token(authorization_response=request.url)
     creds = flow.credentials
 
-    # Save the credentials to your database
-    db.execute("UPDATE users SET google_creds = ? WHERE id = ?", 
-               creds.to_json(), session["user_id"])
+    # Verify who this person is using the ID Token
+    token_request = requests.Request()
+    user_info = id_token.verify_oauth2_token(
+        creds.id_token, 
+        token_request, 
+        flow.client_config['client_id']
+    )
 
-    flash("Successfully connected to Google Classroom!")
+    google_id = user_info.get("sub")
+    email = user_info.get("email")
+    # Extract prefix (e.g., 'jsmith26' from 'jsmith26@school.edu')
+    username_from_email = email.split('@')[0]
+
+    # Check if user exists by Google ID
+    user = db.execute("SELECT * FROM users WHERE google_id = ?", google_id)
+
+    if not user:
+        # Create new user if they don't exist
+        db.execute("""
+            INSERT INTO users (username, email, google_id, google_creds, notifications_enabled) 
+            VALUES (?, ?, ?, ?, TRUE)
+        """, username_from_email, email, google_id, creds.to_json())
+        # Fetch the new user
+        user = db.execute("SELECT * FROM users WHERE google_id = ?", google_id)
+    else:
+        # Update existing user's credentials
+        db.execute("UPDATE users SET google_creds = ? WHERE google_id = ?", 
+                   creds.to_json(), google_id)
+
+    # LOG THE USER IN (The most important part)
+    session.clear()
+    session["user_id"] = user[0]["id"]
+    
+    flash(f"Welcome back, {user[0]['username']}!")
     return redirect("/")
 #Partially taken from Finance problem set
 @app.route("/register", methods=["GET", "POST"])
