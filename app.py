@@ -135,9 +135,6 @@ def google_login():  # Removed @login_required
     session["google_state"] = state
     return redirect(authorization_url)
 
-from google.oauth2 import id_token
-from google.auth.transport import requests
-
 @app.route("/google_callback")
 def google_callback(): # Removed @login_required
     flow = Flow.from_client_secrets_file(
