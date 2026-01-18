@@ -299,6 +299,8 @@ def clear_schedule():
 @login_required
 @student_required
 def add_assignment():
+    print(f"DEBUG: Current Session User ID is {session.get('user_id')}")
+    print(f"DEBUG: Request Method is {request.method}")
     if not session.get("user_id"):
         return redirect("/login")
 
