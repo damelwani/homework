@@ -168,8 +168,8 @@ def google_callback(): # Removed @login_required
     if not user:
         # Create new user if they don't exist
         db.execute("""
-            INSERT INTO users (username, email, google_id, google_creds, notifications_enabled) 
-            VALUES (?, ?, ?, ?, TRUE)
+            INSERT INTO users (username, email, google_id, google_creds, notifications_enabled, type) 
+            VALUES (?, ?, ?, ?, TRUE, 'student')
         """, username_from_email, email, google_id, creds.to_json())
         # Fetch the new user
         user = db.execute("SELECT * FROM users WHERE google_id = ?", google_id)
