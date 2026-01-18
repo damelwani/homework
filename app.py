@@ -1,7 +1,7 @@
 import os
 
 from cs50 import SQL
-from flask import Flask, flash, redirect, render_template, request, session, url_for, jsonify, abort
+from flask import Flask, flash, redirect, render_template, request, session, url_for, jsonify, abort, send_from_directory
 from werkzeug.security import check_password_hash, generate_password_hash
 from functools import wraps
 from helpers import login_required
@@ -78,6 +78,16 @@ def parse_time(time_val):
             return datetime.strptime(time_val, '%H:%M').time()
         except ValueError:
             return time_val
+
+# Route to serve the manifest at the root
+@app.route('/site.webmanifest')
+def manifest():
+    return send_from_directory('static', 'site.webmanifest')
+
+# Route to serve favicon.ico at the root (keeps browser logs clean)
+@app.route('/favicon.ico')
+def favicon():
+    return send_from_directory('static', 'favicon.ico')
 
 #From AI
 def format_date(value):
