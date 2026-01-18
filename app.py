@@ -690,3 +690,11 @@ def internal_error(error):
 def unsubscribe(user_id):
     db.execute("UPDATE users SET notifications_enabled = FALSE WHERE id = ?", user_id)
     return render_template("message.html", message="You have been unsubscribed from email alerts.")
+
+@app.route("/privacy")
+def privacy():
+    return render_template("privacy.html")
+
+@app.route("/terms")
+def terms():
+    return render_template("terms.html")
