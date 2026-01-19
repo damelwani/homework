@@ -181,6 +181,9 @@ def google_callback(): # Removed @login_required
     # LOG THE USER IN (The most important part)
     session.clear()
     session["user_id"] = user[0]["id"]
+
+    session["role"] = user[0]["role"] 
+    session["notifications"] = user[0]["notifications_enabled"]
     
     flash(f"Welcome back, {user[0]['username']}!")
     return redirect("/")
