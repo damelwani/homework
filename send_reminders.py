@@ -2,6 +2,7 @@ import os
 from cs50 import SQL
 import smtplib
 from email.message import EmailMessage
+from email.utils import formataddr
 
 # Connection to your Neon Database
 db = SQL("postgresql://neondb_owner:npg_wEKqG5s9jnlY@ep-wandering-tree-adanengq-pooler.c-2.us-east-1.aws.neon.tech/neondb?sslmode=require")
@@ -25,11 +26,12 @@ def send_reminders():
 
     for task in tasks:
         msg = EmailMessage()
-        
+        sender_name = "TrackHW Reminders"
+        sender_email = os.environ.get("EMAIL_ADDRESS")
         # Dynamic Subject line based on type
         due_text = "in 3 days" if task['type'].lower() == "exam" else "tomorrow"
         msg['Subject'] = f"Reminder: {task['title']} is due {due_text}!"
-        msg['From'] = os.environ.get("EMAIL_ADDRESS")
+        msg['From'] = formataddr((sender_name, sender_email))        
         msg['To'] = task['email']
         
         # HTML Styling
