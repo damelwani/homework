@@ -14,6 +14,7 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 import smtplib
 import pytz
+from groq import Groq
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
@@ -31,6 +32,10 @@ try:
     db = SQL(database_url)
 except Exception as e:
     print(f"Database connection error: {e}")
+
+GROQ_API_KEY = os.getenv("GROQ_API_KEY")
+
+client = Groq(api_key=GROQ_API_KEY)
 
 # Setup Email credentials (for the reminder script)
 EMAIL_ADDRESS = os.environ.get("EMAIL_ADDRESS")
@@ -736,3 +741,51 @@ def privacy():
 @app.route("/terms")
 def terms():
     return render_template("terms.html")
+
+@app.route("/chat", methods=["GET", "POST"])
+def tutor():
+    # 1. Initialize chat history in the session if it doesn't exist
+    if "chat_history" not in session:
+        session["chat_history"] = [
+            {"role": "system", "content": (
+                "You are the TrackHW Tutor, a Socratic assistant. "
+                "Your goal is to help students learn concepts. "
+                "CRITICAL RULE: Never provide the direct answer or full solution. "
+                "Instead, ask guiding questions, give small hints, and use analogies. "
+                "Always encourage the student to think through the next step."
+            )}
+        ]
+
+    if request.method == "POST":
+        user_input = request.json.get("message")
+        
+        # 2. Add the user's new message to the history
+        session["chat_history"].append({"role": "user", "content": user_input})
+        
+        try:
+            # 3. Call Groq with the FULL history (so it remembers the conversation)
+            completion = client.chat.completions.create(
+                model="llama3-8b-8192",
+                messages=session["chat_history"],
+                temperature=0.6,
+            )
+            
+            ai_reply = completion.choices[0].message.content
+            
+            # 4. Add the AI's reply to the history and save the session
+            session["chat_history"].append({"role": "assistant", "content": ai_reply})
+            session.modified = True # Tells Flask the session data changed
+            
+            return jsonify({"reply": ai_reply})
+            
+        except Exception as e:
+            print(f"Groq Error: {e}")
+            return jsonify({"reply": "I'm having a bit of trouble thinking. Try again?"}), 500
+
+    return render_template("tutor.html")
+
+@app.route("/tutor/clear", methods=["POST"])
+def clear_tutor():
+    """Route to reset the conversation"""
+    session.pop("chat_history", None)
+    return jsonify({"status": "cleared"})
