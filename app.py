@@ -774,7 +774,7 @@ def tutor():
         try:
             # 3. Call Groq with the FULL history (so it remembers the conversation)
             completion = client.chat.completions.create(
-                model="llama3-8b-8192",
+                model="llama-3.1-8b-instant",
                 messages=session["chat_history"],
                 temperature=0.6,
             )
