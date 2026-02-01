@@ -742,7 +742,7 @@ def privacy():
 def terms():
     return render_template("terms.html")
 
-@app.route("/chat", methods=["GET", "POST"])
+@app.route("/tutor", methods=["GET", "POST"])
 def tutor():
     # 1. Initialize chat history in the session if it doesn't exist
     if "chat_history" not in session:
