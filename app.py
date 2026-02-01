@@ -765,6 +765,7 @@ def tutor():
                 "4. Always use proper LaTeX syntax (e.g., \\frac{a}{b} for fractions, \\sqrt{x} for roots).\n"
                 "5. Use clear paragraph breaks to avoid walls of text."
                 )
+            }
         ]
 
     if request.method == "POST":
