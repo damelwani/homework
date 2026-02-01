@@ -33,9 +33,14 @@ try:
 except Exception as e:
     print(f"Database connection error: {e}")
 
-GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
-client = Groq(api_key=GROQ_API_KEY)
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+
+if GROQ_API_KEY:
+    client = Groq(api_key=GROQ_API_KEY)
+else:
+    client = None
+    print("WARNING: GROQ_API_KEY is not set!")
 
 # Setup Email credentials (for the reminder script)
 EMAIL_ADDRESS = os.environ.get("EMAIL_ADDRESS")
@@ -757,6 +762,10 @@ def tutor():
         ]
 
     if request.method == "POST":
+
+        if client is None:
+            print("ERROR: Groq client is None. Check your Environment Variables.")
+            return jsonify({"reply": "System Error: The AI engine is not configured. Please check the GROQ_API_KEY."}), 500
         user_input = request.json.get("message")
         
         # 2. Add the user's new message to the history
