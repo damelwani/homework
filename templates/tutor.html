@@ -1,0 +1,160 @@
+{% extends "layout.html" %}
+
+{% block title %}Tutor{% endblock %}
+
+{% block content %}
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<div class="chat-wrapper">
+    <div class="container pt-4 text-center">
+        <h2 class="fw-bold">TrackHW Tutor <span class="badge rounded-pill bg-info text-dark ms-1" style="font-size: 0.45em; vertical-align: middle;">BETA</span></h2>
+        <p class="text-muted small">Your Socratic study partner.</p>
+        <button class="btn btn-sm btn-outline-secondary opacity-75 mt-2" onclick="clearChat()">
+            <i class="bi bi-arrow-clockwise"></i> Reset Session
+        </button>
+    </div>
+
+    <div id="chat-container" class="container py-4">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-7" id="chat-messages">
+                <div class="ai-bubble mb-4">
+                    <div class="ai-icon mb-2">
+                        <i class="bi bi-stars text-info fs-4"></i>
+                    </div>
+                    <div class="msg-content">
+                        Hello! I'm your homework assistant. What concept or problem should we explore together?
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="input-area fixed-bottom py-4 bg-body">
+        <div class="container">
+            <div class="row justify-content-center">
+                <div class="col-md-8 col-lg-7 position-relative">
+                    
+                    <div id="typing-indicator" class="d-none mb-2 ms-3">
+                        <span class="badge bg-light text-muted fw-normal p-2 border shadow-sm">
+                            <span class="spinner-grow spinner-grow-sm text-info me-1" role="status"></span>
+                            TrackHW Tutor is thinking...
+                        </span>
+                    </div>
+
+                    <div class="input-group custom-input-group shadow-sm">
+                        <input type="text" id="user-input" class="form-control border-0 py-3 ps-4" 
+                               placeholder="Ask about a concept..." autocomplete="off"
+                               onkeypress="if(event.key === 'Enter') sendMessage()">
+                        <button class="btn btn-link text-primary pe-4" onclick="sendMessage()">
+                            <i class="bi bi-send-fill fs-5"></i>
+                        </button>
+                    </div>
+                    
+                    <p class="text-center text-muted mt-2 mb-0" style="font-size: 0.7rem; line-height: 1.2;">
+                        TrackHW Tutor is an experimental feature powered by Groq. It can make mistakes, so always double check it. Its purpose is to assist without giving solutions.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .chat-wrapper { min-height: 100vh; padding-bottom: 180px; }
+    
+    .user-bubble {
+        background-color: #f0f4f9;
+        border-radius: 18px;
+        padding: 10px 18px;
+        max-width: 85%;
+        margin-left: auto;
+        margin-bottom: 1.5rem;
+        color: #1f1f1f;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.02);
+    }
+
+    [data-bs-theme="dark"] .user-bubble {
+        background-color: #2b2d31;
+        color: #e3e3e3;
+    }
+
+    .ai-bubble { margin-bottom: 2rem; }
+    .msg-content { line-height: 1.6; font-size: 1.05rem; }
+    .msg-content p:last-child { margin-bottom: 0; }
+
+    .custom-input-group {
+        background: #f0f4f9;
+        border-radius: 28px;
+        overflow: hidden;
+        border: 1px solid transparent;
+        transition: all 0.2s ease;
+    }
+
+    .custom-input-group:focus-within {
+        border-color: #0d6efd;
+        background: var(--bs-body-bg);
+        box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.1) !important;
+    }
+
+    [data-bs-theme="dark"] .custom-input-group {
+        background: #1e1f20;
+    }
+
+    .form-control:focus { box-shadow: none; background: transparent; }
+</style>
+
+<script>
+    async function sendMessage() {
+        const input = document.getElementById('user-input');
+        const chatMessages = document.getElementById('chat-messages');
+        const typingIndicator = document.getElementById('typing-indicator');
+        const text = input.value.trim();
+        
+        if (!text) return;
+
+        // Append User Message
+        const userDiv = document.createElement('div');
+        userDiv.className = 'user-bubble';
+        userDiv.innerText = text;
+        chatMessages.appendChild(userDiv);
+        input.value = '';
+
+        // Show Typing Indicator
+        typingIndicator.classList.remove('d-none');
+        window.scrollTo(0, document.body.scrollHeight);
+
+        try {
+            const response = await fetch('/tutor', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ message: text })
+            });
+            const data = await response.json();
+
+            typingIndicator.classList.add('d-none');
+
+            // Append AI Response (Parsed with Marked)
+            const aiDiv = document.createElement('div');
+            aiDiv.className = 'ai-bubble';
+            aiDiv.innerHTML = `
+                <div class="ai-icon mb-2"><i class="bi bi-stars text-info fs-4"></i></div>
+                <div class="msg-content">${marked.parse(data.reply)}</div>
+            `;
+            chatMessages.appendChild(aiDiv);
+            
+            window.scrollTo(0, document.body.scrollHeight);
+            
+        } catch (e) {
+            typingIndicator.classList.add('d-none');
+            console.error("Error:", e);
+        }
+    }
+
+    async function clearChat() {
+        if(confirm("Start a new session?")) {
+            await fetch('/tutor/clear', { method: 'POST' });
+            location.reload();
+        }
+    }
+</script>
+{% endblock %}
