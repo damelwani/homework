@@ -748,6 +748,8 @@ def terms():
     return render_template("terms.html")
 
 @app.route("/tutor", methods=["GET", "POST"])
+@login_required
+@student_required
 def tutor():
     # 1. Initialize chat history in the session if it doesn't exist
     if "chat_history" not in session:
