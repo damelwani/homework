@@ -71,6 +71,15 @@
                         <li class="nav-item"><a class="nav-link" href="/add">Add Assignment</a></li>
                         <li class="nav-item"><a class="nav-link" href="/schedule">Schedule</a></li>
                         <li class="nav-item"><a class="nav-link" href="/calendar">Calendar</a></li>
+                        <li class="nav-item">
+                            <a class="nav-link d-flex align-items-center {% if request.path == '/tutor' %}active{% endif %}" href="{{ url_for('tutor') }}">
+                            <i class="bi bi-robot me-2"></i> 
+                            <span>TrackHW Tutor</span>
+                            <span class="badge rounded-pill bg-info text-primary ms-2" style="font-size: 0.65rem; font-weight: 600;">
+                                    BETA
+                                </span>
+                            </a>
+                        </li>
                     {% endif %}
                 {% endif %}
             </ul>
