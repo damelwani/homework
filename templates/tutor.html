@@ -104,6 +104,23 @@
 </style>
 
 <script>
+    // 1. Function to create the "Typewriter" effect
+    function typeWriter(text, element, speed = 15) {
+        let i = 0;
+        element.innerHTML = ""; // Clear existing text
+        function type() {
+            if (i < text.length) {
+                element.innerHTML += text.charAt(i);
+                i++;
+                setTimeout(type, speed);
+                // Keep scrolling to bottom as text grows
+                window.scrollTo(0, document.body.scrollHeight);
+            }
+        }
+        type();
+    }
+
+    // 2. Modified sendMessage function
     async function sendMessage() {
         const input = document.getElementById('user-input');
         const chatMessages = document.getElementById('chat-messages');
@@ -112,14 +129,14 @@
         
         if (!text) return;
 
-        // Append User Message
+        // User Message
         const userDiv = document.createElement('div');
         userDiv.className = 'user-bubble';
         userDiv.innerText = text;
         chatMessages.appendChild(userDiv);
         input.value = '';
 
-        // Show Typing Indicator
+        // Show "Thinking" spinner
         typingIndicator.classList.remove('d-none');
         window.scrollTo(0, document.body.scrollHeight);
 
@@ -131,18 +148,25 @@
             });
             const data = await response.json();
 
+            // Hide "Thinking" spinner
             typingIndicator.classList.add('d-none');
 
-            // Append AI Response (Parsed with Marked)
+            // Create AI Message Container
             const aiDiv = document.createElement('div');
             aiDiv.className = 'ai-bubble';
             aiDiv.innerHTML = `
                 <div class="ai-icon mb-2"><i class="bi bi-stars text-info fs-4"></i></div>
-                <div class="msg-content">${marked.parse(data.reply)}</div>
+                <div class="msg-content"></div>
             `;
             chatMessages.appendChild(aiDiv);
             
-            window.scrollTo(0, document.body.scrollHeight);
+            // Use the Typewriter effect on the msg-content div
+            const contentDiv = aiDiv.querySelector('.msg-content');
+            
+            // If response is Markdown, parse it, then type it
+            // (Note: typing raw HTML can be tricky, so we type the plain text 
+            // or use a simplified version)
+            typeWriter(data.reply, contentDiv);
             
         } catch (e) {
             typingIndicator.classList.add('d-none');
@@ -150,11 +174,17 @@
         }
     }
 
-    async function clearChat() {
-        if(confirm("Start a new session?")) {
-            await fetch('/tutor/clear', { method: 'POST' });
-            location.reload();
-        }
-    }
+    // 3. Trigger the initial greeting when the page loads
+    window.onload = () => {
+        const chatMessages = document.getElementById('chat-messages');
+        const greetDiv = document.createElement('div');
+        greetDiv.className = 'ai-bubble';
+        greetDiv.innerHTML = `
+            <div class="ai-icon mb-2"><i class="bi bi-stars text-info fs-4"></i></div>
+            <div class="msg-content"></div>
+        `;
+        chatMessages.appendChild(greetDiv);
+        typeWriter("Hello! I'm your TrackHW Tutor. What concept should we work on today?", greetDiv.querySelector('.msg-content'));
+    };
 </script>
 {% endblock %}
