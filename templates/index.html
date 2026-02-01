@@ -85,7 +85,7 @@
                 <tr class="{% if task.status == 'Completed' %}table-success text-muted{% elif task.due_date < today %}table-danger{% endif %}">
                     
                     <td class="d-none d-md-table-cell">
-                        <span class="badge {% if task.status == 'Completed' %}bg-secondary opacity-50{% else %}bg-indigo{% endif %}">
+                        <span class="badge {% if task.status == 'Completed' %}text-bg-secondary opacity-50{% else %}text-bg-primary{% endif %}">
                             {{ task.subject or "General" }}
                         </span>
                     </td>
