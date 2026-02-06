@@ -205,7 +205,7 @@ def google_callback(): # Removed @login_required
 def register():
     if request.method == "POST":
         username = request.form.get("username")
-        email = request.form.get("email") # New field
+        email = request.form.get("email")
         password = request.form.get("password")
         confirmation = request.form.get("confirmation")
         role = request.form.get("role")
@@ -221,16 +221,24 @@ def register():
         hash = generate_password_hash(password)
 
         try:
-            # Add email to the INSERT statement
+            # 1. Insert into Database
             db.execute(
                 "INSERT INTO users (username, email, hash, role) VALUES (?, ?, ?, ?)",
                 username, email, hash, role
             )
+            
+            # 2. Trigger the Background Email (Now that user exists)
+            send_async_welcome_email(email, username)
+            
             return redirect("/login")
+            
         except Exception as e:
+            # This catches DB errors like duplicate usernames
+            print(f"Registration Error: {e}")
             flash("Username already exists or error occurred")
             return render_template("register.html")
-    send_async_welcome_email(email, username)
+
+    # This only runs for GET requests (initial page load)
     return render_template("register.html")
 
 
