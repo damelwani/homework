@@ -822,8 +822,8 @@ def clear_tutor():
 
 
 def send_async_welcome_email(user_email, username):
-    msg_username = os.environ.get('MAIL_USERNAME')
-    msg_password = os.environ.get('MAIL_PASSWORD')
+    msg_username = os.environ.get('EMAIL_ADDRESS')
+    msg_password = os.environ.get('EMAIL_PASSWORD')
 
     msg = EmailMessage()
     msg["Subject"] = "Welcome to TrackHW!"
