@@ -19,38 +19,6 @@ from email.message import EmailMessage
 from email.utils import formataddr
 import threading
 
-def send_welcome_email(user_email, first_name):
-    # Retrieve credentials from environment variables
-    msg_username = os.environ.get('MAIL_USERNAME')
-    msg_password = os.environ.get('MAIL_PASSWORD')
-
-    msg = EmailMessage()
-    msg["Subject"] = "Welcome to TrackHW!"
-    msg["From"] = formataddr(("TrackHW Team", msg_username))
-    msg["To"] = user_email
-
-    # This is the HTML version of your email
-    msg.set_content(f"Hi {first_name}, welcome to TrackHW! We're glad to have you.") # Plain text fallback
-    msg.add_alternative(f"""\
-    <html>
-        <body style="font-family: sans-serif; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
-            <h2 style="color: #0d6efd;">Welcome to TrackHW, {first_name}!</h2>
-            <p>Thanks for joining! You can now track your homework and use our AI Tutor to get ahead in your classes.</p>
-            <hr style="border: 0; border-top: 1px solid #eee;">
-            <p style="font-size: 0.8rem; color: #777;">If you have any questions, just reply to this email.</p>
-        </body>
-    </html>
-    """, subtype='html')
-
-    try:
-        with smtplib.SMTP("smtp.porkbun.com", 587) as server:
-            server.starttls()
-            server.login(msg_username, msg_password)
-            server.send_message(msg)
-            print(f"Registration email sent to {user_email}")
-    except Exception as e:
-        print(f"Error sending welcome email: {e}")
-
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
 app = Flask(__name__)
@@ -258,7 +226,7 @@ def register():
                 "INSERT INTO users (username, email, hash, role) VALUES (?, ?, ?, ?)",
                 username, email, hash, role
             )
-            end_async_welcome_email(email, username)
+            send_async_welcome_email(email, username)
             return redirect("/login")
         except Exception as e:
             flash("Username already exists or error occurred")
