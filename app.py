@@ -15,6 +15,41 @@ from google.auth.transport import requests
 import smtplib
 import pytz
 from groq import Groq
+from email.message import EmailMessage
+from email.utils import formataddr
+import threading
+
+def send_welcome_email(user_email, first_name):
+    # Retrieve credentials from environment variables
+    msg_username = os.environ.get('MAIL_USERNAME')
+    msg_password = os.environ.get('MAIL_PASSWORD')
+
+    msg = EmailMessage()
+    msg["Subject"] = "Welcome to TrackHW!"
+    msg["From"] = formataddr(("TrackHW Team", msg_username))
+    msg["To"] = user_email
+
+    # This is the HTML version of your email
+    msg.set_content(f"Hi {first_name}, welcome to TrackHW! We're glad to have you.") # Plain text fallback
+    msg.add_alternative(f"""\
+    <html>
+        <body style="font-family: sans-serif; border: 1px solid #eee; padding: 20px; border-radius: 10px;">
+            <h2 style="color: #0d6efd;">Welcome to TrackHW, {first_name}!</h2>
+            <p>Thanks for joining! You can now track your homework and use our AI Tutor to get ahead in your classes.</p>
+            <hr style="border: 0; border-top: 1px solid #eee;">
+            <p style="font-size: 0.8rem; color: #777;">If you have any questions, just reply to this email.</p>
+        </body>
+    </html>
+    """, subtype='html')
+
+    try:
+        with smtplib.SMTP("smtp.porkbun.com", 587) as server:
+            server.starttls()
+            server.login(msg_username, msg_password)
+            server.send_message(msg)
+            print(f"Registration email sent to {user_email}")
+    except Exception as e:
+        print(f"Error sending welcome email: {e}")
 
 os.environ['OAUTHLIB_INSECURE_TRANSPORT'] = '1'
 
@@ -223,6 +258,7 @@ def register():
                 "INSERT INTO users (username, email, hash, role) VALUES (?, ?, ?, ?)",
                 username, email, hash, role
             )
+            end_async_welcome_email(email, username)
             return redirect("/login")
         except Exception as e:
             flash("Username already exists or error occurred")
@@ -807,3 +843,40 @@ def clear_tutor():
     """Route to reset the conversation"""
     session.pop("chat_history", None)
     return jsonify({"status": "cleared"})
+
+
+
+def send_async_welcome_email(user_email, username):
+    msg_username = os.environ.get('MAIL_USERNAME')
+    msg_password = os.environ.get('MAIL_PASSWORD')
+
+    msg = EmailMessage()
+    msg["Subject"] = "Welcome to TrackHW!"
+    msg["From"] = formataddr(("TrackHW Team", msg_username))
+    msg["To"] = user_email
+
+    # HTML Content using the 'username' column
+    msg.set_content(f"Hi {username}, welcome to TrackHW!") 
+    msg.add_alternative(f"""\
+    <html>
+        <body style="font-family: sans-serif; padding: 20px; color: #333;">
+            <h2 style="color: #0d6efd;">Welcome to TrackHW, {username}!</h2>
+            <p>We're excited to have you on board. You can now track your homework and chat with your <a href="https://www.trackhw.com/tutor">AI Tutor</a>.</p>
+            <p>Get started by adding your first assignment to your <a href="https://www.trackhw.com/">dashboard</a>.</p>
+            <br>
+            <p style="font-size: 0.8rem; color: #999;">The TrackHW Team</p>
+        </body>
+    </html>
+    """, subtype='html')
+
+    def send_thread():
+        try:
+            with smtplib.SMTP("smtp.porkbun.com", 587) as server:
+                server.starttls()
+                server.login(msg_username, msg_password)
+                server.send_message(msg)
+        except Exception as e:
+            print(f"Background email error: {e}")
+
+    # Start the thread
+    threading.Thread(target=send_thread).start()
