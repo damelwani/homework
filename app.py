@@ -226,8 +226,8 @@ def register():
                 "INSERT INTO users (username, email, hash, role) VALUES (?, ?, ?, ?)",
                 username, email, hash, role
             )
-            send_async_welcome_email(email, username)
-            return redirect("/login")
+        send_async_welcome_email(email, username)
+        return redirect("/login")
         except Exception as e:
             flash("Username already exists or error occurred")
             return render_template("register.html")
